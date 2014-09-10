@@ -1,7 +1,16 @@
 %%-*- mode: erlang -*-
 {application, averell,
  [
+  {applications, [
+		  kernel,
+		  stdlib,
+		  cowboy,
+		  cowlib
+		 ]},
   {description, "Averell is a simple file HTTP server"},
-  {modules, []},
+  {modules, [
+	     averell,
+	     cowboy_router
+	    ]},
   {vsn, git}
  ]}.
