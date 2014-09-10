@@ -14,6 +14,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+ESCRIPT=averell
 
 ERLFLAGS= -pa $(CURDIR)/.eunit -pa $(CURDIR)/ebin -pa $(CURDIR)/deps/*/ebin
 
@@ -36,9 +37,20 @@ $(error "Rebar not available on this system")
 endif
 
 .PHONY: all compile doc clean test dialyzer typer shell distclean pdf \
-  update-deps clean-common-test-data rebuild
+  update-deps clean-common-test-data rebuild install
 
 all: deps compile test
+	$(REBAR) escriptize
+
+install:
+	@if [ `id -u` -eq 0 ]; then \
+	  echo "INSTALL" $(DESTDIR)/usr/local/bin/$(ESCRIPT); \
+	  install -m 755 -o root -g root $(ESCRIPT) $(DESTDIR)/usr/local/bin/; \
+	else \
+	  echo "INSTALL" $(HOME)/bin/$(ESCRIPT); \
+	  mkdir -p $(HOME)/bin; \
+	  install -m 755 $(ESCRIPT) $(HOME)/bin; \
+	fi
 
 # =============================================================================
 # Rules to build the system
