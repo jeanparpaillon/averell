@@ -39,10 +39,12 @@ endif
 .PHONY: all compile doc clean test dialyzer typer shell distclean pdf \
   update-deps clean-common-test-data rebuild install
 
-all: deps compile test
+all: escriptize test
+
+escriptize: deps compile
 	$(REBAR) escriptize
 
-install:
+install: escriptize
 	@if [ `id -u` -eq 0 ]; then \
 	  echo "INSTALL" $(DESTDIR)/usr/local/bin/$(ESCRIPT); \
 	  install -m 755 -o root -g root $(ESCRIPT) $(DESTDIR)/usr/local/bin/; \
