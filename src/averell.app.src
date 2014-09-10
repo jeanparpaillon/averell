@@ -1,0 +1,7 @@
+%%-*- mode: erlang -*-
+{application, averell,
+ [
+  {description, "Averell is a simple file HTTP server"},
+  {modules, []},
+  {vsn, git}
+ ]}.

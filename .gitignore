@@ -1,0 +1,17 @@
+*~
+erl_crash.dump
+*.beam
+.eunit
+deps/
+/log/
+/logs/
+test/*.beam
+/doc/*.html
+/doc/*.md
+/doc/edoc-info
+/doc/erlang.png
+/doc/stylesheet.css
+/doc/utf8/
+/.rebar
+/ebin
+/.deps_plt
