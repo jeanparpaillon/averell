@@ -5,12 +5,12 @@
 		  kernel,
 		  stdlib,
 		  cowboy,
-		  cowlib
+		  cowlib,
+		  getopt
 		 ]},
   {description, "Averell is a simple file HTTP server"},
   {modules, [
-	     averell,
-	     cowboy_router
+	     averell
 	    ]},
   {vsn, git}
  ]}.
