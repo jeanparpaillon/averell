@@ -27,10 +27,11 @@ make install
 # Usage
 
 ```
-averell [-h] [-p [<port>]] [-v] [<dir>]
+averell [-h] [-p [<port>]] [-c [<cors>]] [-v] [<dir>]
 
   -h, --help  Show help
   -p, --port  Port number [default: 8000]
+  -c, --cors  Enable CORS (allowed origins: *) [default: false]
   -v          Verbose
   <dir>       Directory to serve [default: $CWD]
 ```
