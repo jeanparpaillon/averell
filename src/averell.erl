@@ -34,6 +34,7 @@
 -define(argspec, [
 		  {help,    $h,        "help",    undefined,           "Show help"},
 		  {port,    $p,        "port",    {integer, ?port},    "Port number"},
+		  {cors,    $c,        "cors",    {boolean, false},    "Enable CORS (allowed origins: *)"},
 		  {verbose, $v,        undefined, undefined,           "Verbose"},
 		  {dir,     undefined, undefined, {string, get_cwd()}, "Directory to serve"}
 		 ]).
@@ -78,14 +79,24 @@ start(Opts) ->
     Handler = {"/[...]", cowboy_static, 
 	       {dir, Dir, [{mimetypes, cow_mimetypes, all}]}},
     Dispatch = cowboy_router:compile([{'_', [Handler]}]),
-    CowboyOpts = case proplists:get_bool(verbose, Opts) of
-		     true ->
-			 [{onresponse, fun ?MODULE:onresponse/4}];
-		     false ->
-			 []
-		 end,
+    Env = [{dispatch, Dispatch}],
+    Env2 = case proplists:get_bool(verbose, Opts) of
+	       true ->
+		   [{onresponse, fun ?MODULE:onresponse/4} | Env];
+	       false ->
+		   Env
+	   end,
+    {Middlewares, Env3} = case proplists:get_bool(cors, Opts) of
+			      true ->
+				  {[cowboy_router, cowboy_cors, cowboy_handler], [{cors_policy, averell_cors} | Env2]};
+			      false ->
+				  {[cowboy_router, cowboy_handler], Env2}
+			  end,
     case cowboy:start_http(http, 5, [{port, Port}], 
-			   [{env, [{dispatch, Dispatch}]} | CowboyOpts]) of
+			   [
+			    {env, Env3},
+			    {middlewares, Middlewares}
+			   ]) of
 	{ok, _} ->
 	    ?info("Serving ~p on 0.0.0.0:~p~n", [Dir, proplists:get_value(port, Opts)]),
 	    loop();

@@ -6,11 +6,13 @@
 		  stdlib,
 		  cowboy,
 		  cowlib,
+		  cowboy_cors,
 		  getopt
 		 ]},
   {description, "Averell is a simple file HTTP server"},
   {modules, [
-	     averell
+	     averell,
+	     averell_cors
 	    ]},
   {vsn, git}
  ]}.
