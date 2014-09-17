@@ -30,7 +30,7 @@ ifeq ($(ERL),)
 $(error "Erlang not available on this system")
 endif
 
-REBAR=$(shell which rebar)
+REBAR=$(shell which rebar || echo ./rebar)
 
 ifeq ($(REBAR),)
 $(error "Rebar not available on this system")
