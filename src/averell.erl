@@ -23,11 +23,7 @@
 %%%-------------------------------------------------------------------
 -module(averell).
 
--define(info(Msg), io:format("INFO: " ++ Msg)).
--define(info(Msg, Data), io:format("INFO: " ++ Msg, Data)).
-
--define(error(Msg), io:format("ERROR: " ++ Msg)).
--define(error(Msg, Data), io:format("ERROR: " ++ Msg, Data)).
+-include("averell.hrl").
 
 -define(port, 8000).
 
@@ -36,6 +32,7 @@
 		  {port,    $p,        "port",    {integer, ?port},    "Port number"},
 		  {cors,    $c,        "cors",    {boolean, false},    "Enable CORS (allowed origins: *)"},
 		  {verbose, $v,        undefined, undefined,           "Verbose"},
+		  {noindex, $I,        "no-index",{boolean, false},    "Do not server index.html automatically"},
 		  {dir,     undefined, undefined, {string, get_cwd()}, "Directory to serve"}
 		 ]).
 
@@ -86,16 +83,20 @@ start(Opts) ->
 	       false ->
 		   Env
 	   end,
-    {Middlewares, Env3} = case proplists:get_bool(cors, Opts) of
-			      true ->
-				  {[cowboy_router, cowboy_cors, cowboy_handler], [{cors_policy, averell_cors} | Env2]};
-			      false ->
-				  {[cowboy_router, cowboy_handler], Env2}
-			  end,
+    {Mw, Env3} = case proplists:get_bool(cors, Opts) of
+		     true ->
+			 {[cowboy_router, cowboy_cors, cowboy_handler], [{cors_policy, averell_cors} | Env2]};
+		     false ->
+			 {[cowboy_router, cowboy_handler], Env2}
+		 end,
+    Mw2 = case proplists:get_bool(noindex, Opts) of
+	      true -> Mw;
+	      false -> [ averell_index | Mw]
+	  end,
     case cowboy:start_http(http, 5, [{port, Port}], 
 			   [
 			    {env, Env3},
-			    {middlewares, Middlewares}
+			    {middlewares, Mw2}
 			   ]) of
 	{ok, _} ->
 	    ?info("Serving ~p on 0.0.0.0:~p~n", [Dir, proplists:get_value(port, Opts)]),
