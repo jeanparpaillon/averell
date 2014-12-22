@@ -114,6 +114,8 @@ distclean: clean
 rebuild: distclean deps compile escript dialyzer test
 
 dist:
+	$(REBAR) get-deps
+	$(REBAR) update-deps
 	vsn=$(shell git describe) && \
 	  git archive --prefix=averell-$${vsn}/ HEAD . | \
 	  xz > averell-$${vsn}.tar.xz
