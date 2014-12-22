@@ -37,7 +37,11 @@ man: $(MANS)
 	$(XP) $(DB2MAN) $<
 
 dist: clean deps
+	for dep in $(shell ls deps); do \
+	  [ -e deps/$${dep}/Makefile ] && $(MAKE) -C deps/$${dep} clean; \
+	done
 	vsn=$(shell git describe) && \
+	  rm -rf averell-$${vsn} && \
 	  git archive --prefix=averell-$${vsn}/ HEAD . | tar -xf - && \
 	  tar -cf - --exclude='.git' --exclude='.gitignore' deps | tar -xf - -C averell-$${vsn} && \
 	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz
