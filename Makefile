@@ -36,7 +36,8 @@ man: $(MANS)
 %.1: %.1.xml
 	$(XP) $(DB2MAN) $<
 
-dist: clean clean-deps
+dist: deps
+	$(MAKE) clean clean-deps
 	vsn=$(shell git describe --dirty --abbrev=7 --tags --always --first-parent 2>/dev/null || true) && \
 	  rm -rf averell-$${vsn} && \
 	  git archive --prefix=averell-$${vsn}/ HEAD . | tar -xf - && \
