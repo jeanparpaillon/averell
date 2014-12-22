@@ -16,3 +16,5 @@ test/*.beam
 /.rebar
 /ebin
 /.deps_plt
+averell-*/
+averell-*.tar.xz
