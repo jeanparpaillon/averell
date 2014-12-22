@@ -19,3 +19,4 @@ test/*.beam
 averell-*/
 averell-*.tar.xz
 averell.1
+.erlang.mk.packages.v2

@@ -35,3 +35,9 @@ man: $(MANS)
 
 %.1: %.1.xml
 	$(XP) $(DB2MAN) $<
+
+dist: clean deps
+	vsn=$(shell git describe) && \
+	  git archive --prefix=averell-$${vsn}/ HEAD . | tar -xf - && \
+	  tar -cf - --exclude='.git' --exclude='.gitignore' deps | tar -xf - -C averell-$${vsn} && \
+	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz
