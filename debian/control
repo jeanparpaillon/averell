@@ -1,0 +1,21 @@
+Source: averell
+Section: httpd
+Priority: optional
+Maintainer: Jean Parpaillon <jean.parpaillon@free.fr>
+Build-Depends: debhelper (>= 9), erlang-dev, xsltproc, docbook-xsl
+Standards-Version: 3.9.5
+Homepage: http://github.com/jeanparpaillon/averell
+Vcs-Git: https://github.com/jeanparpaillon/averell
+Vcs-Browser: https://github.com/jeanparpaillon/averell
+
+Package: averell
+Architecture: all
+Depends: ${misc:Depends}
+Description: An incredibly stupid web server
+ averell is an incredibly simple, but fast, web server based on the
+ erlang/OTP application cowboy.
+ .
+ It is as simple to use as starting in a directory to serve it on
+ port 8000 (default). Basic options include: enabling CORS,
+ changing port, redirecting directories to index.html, etc.
+ .
