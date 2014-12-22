@@ -36,13 +36,19 @@ man: $(MANS)
 %.1: %.1.xml
 	$(XP) $(DB2MAN) $<
 
-dist: clean deps
-	for dep in $(shell ls deps); do \
-	  [ -e deps/$${dep}/Makefile ] && $(MAKE) -C deps/$${dep} clean; \
-	done
+dist: clean clean-deps
 	vsn=$(shell git describe --dirty --abbrev=7 --tags --always --first-parent 2>/dev/null || true) && \
 	  rm -rf averell-$${vsn} && \
 	  git archive --prefix=averell-$${vsn}/ HEAD . | tar -xf - && \
 	  tar -cf - --exclude='.git' --exclude='.gitignore' deps | tar -xf - -C averell-$${vsn} && \
 	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz && \
 	  rm -rf averell-$${vsn}
+
+clean-deps:
+	@for dep in $(ALL_DEPS_DIRS) ; do \
+		if [ -f $$dep/GNUmakefile ] || [ -f $$dep/makefile ] || [ -f $$dep/Makefile ] ; then \
+			$(MAKE) -C $$dep clean ; \
+		else \
+			echo "include $(CURDIR)/erlang.mk" | ERLC_OPTS=+debug_info $(MAKE) -f - -C $$dep clean ; \
+		fi ; \
+	done
