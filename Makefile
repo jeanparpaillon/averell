@@ -37,7 +37,7 @@ $(error "Rebar not available on this system")
 endif
 
 .PHONY: all compile doc clean test dialyzer typer shell distclean pdf \
-  update-deps clean-common-test-data rebuild install
+  update-deps clean-common-test-data rebuild install dist
 
 all: escriptize test
 
@@ -112,3 +112,8 @@ distclean: clean
 	- rm -rvf $(CURDIR)/deps
 
 rebuild: distclean deps compile escript dialyzer test
+
+dist:
+	vsn=$(shell git describe) && \
+	  git archive --prefix=averell-$${vsn}/ HEAD . | \
+	  bzip2 > averell-$${vsn}.tar.bz2
