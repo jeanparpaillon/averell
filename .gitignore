@@ -18,3 +18,4 @@ test/*.beam
 /.deps_plt
 averell-*/
 averell-*.tar.xz
+averell.1
