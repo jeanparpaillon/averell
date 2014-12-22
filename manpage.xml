@@ -1,0 +1,195 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+
+<!--
+
+`xsltproc -''-nonet \
+          -''-param man.charmap.use.subset "0" \
+          -''-param make.year.ranges "1" \
+          -''-param make.single.year.ranges "1" \
+          /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl \
+          manpage.xml'
+
+A manual page <package>.<section> will be generated. You may view the
+manual page with: nroff -man <package>.<section> | less'. A typical entry
+in a Makefile or Makefile.am is:
+
+DB2MAN = /usr/share/sgml/docbook/stylesheet/xsl/docbook-xsl/manpages/docbook.xsl
+XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
+
+manpage.1: manpage.xml
+        $(XP) $(DB2MAN) $<
+
+The xsltproc binary is found in the xsltproc package. The XSL files are in
+docbook-xsl. A description of the parameters you can use can be found in the
+docbook-xsl-doc-* packages. Please remember that if you create the nroff
+version in one of the debian/rules file targets (such as build), you will need
+to include xsltproc and docbook-xsl in your Build-Depends control field.
+Alternatively use the xmlto command/package. That will also automatically
+pull in xsltproc and docbook-xsl.
+
+Notes for using docbook2x: docbook2x-man does not automatically create the
+AUTHOR(S) and COPYRIGHT sections. In this case, please add them manually as
+<refsect1> ... </refsect1>.
+
+To disable the automatic creation of the AUTHOR(S) and COPYRIGHT sections
+read /usr/share/doc/docbook-xsl/doc/manpages/authors.html. This file can be
+found in the docbook-xsl-doc-html package.
+
+Validation can be done using: `xmllint -''-noout -''-valid manpage.xml`
+
+General documentation about man-pages and man-page-formatting:
+man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
+
+-->
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "Jean">
+  <!ENTITY dhsurname   "Parpaillon">
+  <!ENTITY dhusername  "&dhfirstname; &dhsurname;">
+  <!ENTITY dhemail     "jean.parpaillon@free.fr">
+  <!ENTITY dhsection   "1">
+  <!ENTITY dhtitle     "averell User Manual">
+  <!ENTITY dhucpackage "averell">
+  <!ENTITY dhpackage   "averell">
+]>
+
+<refentry>
+  <refentryinfo>
+    <title>&dhtitle;</title>
+    <productname>&dhpackage;</productname>
+    <authorgroup>
+      <author>
+       <firstname>&dhfirstname;</firstname>
+        <surname>&dhsurname;</surname>
+        <contrib>Author of averell and this marvellous manpage.</contrib>
+        <address>
+          <email>&dhemail;</email>
+        </address>
+      </author>
+    </authorgroup>
+    <copyright>
+      <year>2014</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    <legalnotice>
+      <para>Permission is granted to copy, distribute and/or modify
+      this document under the terms of the Apache License Version 2 or
+      (at your option) any later version published by the Apache
+      Foundation.</para>
+      <para>On Debian systems, the complete text of the Apache can be
+      found in
+      <filename>/usr/share/common-licenses/Apache-2.0</filename>.</para>
+    </legalnotice>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>&dhucpackage;</refentrytitle>
+    <manvolnum>&dhsection;</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+    <refpurpose>An incredibly stupid (but fast) web server</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+      <arg choice="plain">
+        <group choice="opt">
+          <arg choice="plain"><option>-h</option></arg>
+          <arg choice="plain"><option>--help</option></arg>
+        </group>
+      </arg>
+      <arg choice="plain">
+	<group choice="opt">
+	  <arg choice="plain"><option>-p <replaceable>PORT</replaceable></option></arg>
+	  <arg choice="plain"><option>--port=<replaceable>PORT</replaceable></option></arg>
+	</group>
+      </arg>
+      <arg choice="plain">
+        <group choice="opt">
+          <arg choice="plain"><option>-c</option></arg>
+          <arg choice="plain"><option>--cors</option></arg>
+        </group>
+      </arg>
+      <arg choice="plain">
+        <group choice="opt">
+          <arg choice="plain"><option>-v</option></arg>
+          <arg choice="plain"><option>--verbose</option></arg>
+        </group>
+      </arg>
+      <arg choice="plain">
+        <group choice="opt">
+          <arg choice="plain"><option>-I</option></arg>
+          <arg choice="plain"><option>--no-index</option></arg>
+        </group>
+      </arg>
+      <arg choice="opt"><replaceable>directory</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1 id="description">
+    <title>DESCRIPTION</title>
+    <para>
+      This manual page documents briefly the <command>&dhpackage;</command>.
+    </para>
+    <para>
+      <command>&dhpackage;</command> is an incredibly simple web
+      server, aiming at serving a single directory, fast.
+    </para>
+  </refsect1>
+  <refsect1 id="options">
+    <title>OPTIONS</title>
+    <para>
+      The program follows the usual GNU command line syntax, with long
+      options starting with two dashes (`-').  A summary of options is
+      included below.
+    </para>
+    <variablelist>
+      <!-- Use the variablelist.term.separator and the
+           variablelist.term.break.after parameters to
+           control the term elements. -->
+      <varlistentry>
+        <term><option>-h</option></term>
+        <term><option>--help</option></term>
+        <listitem>
+          <para>Show help and exit.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-p <replaceable>PORT</replaceable></option></term>
+        <term><option>--port=<replaceable>PORT</replaceable></option></term>
+        <listitem>
+          <para>Set listening port (default: 8000).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-c</option></term>
+        <term><option>--cors</option></term>
+        <listitem>
+          <para>Enable CORS (allowed origins: *).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-v</option></term>
+        <term><option>--verbose</option></term>
+        <listitem>
+          <para>Be more verbose.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-I</option></term>
+        <term><option>--no-index</option></term>
+        <listitem>
+          <para>Do not serve index.html file automatically.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>directory</term>
+        <listitem>
+          <para>Directory to server (default: current dir).</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+</refentry>
+

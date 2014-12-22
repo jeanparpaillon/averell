@@ -21,6 +21,11 @@ ERLFLAGS= -pa $(CURDIR)/.eunit -pa $(CURDIR)/ebin -pa $(CURDIR)/deps/*/ebin
 DEPS_PLT=$(CURDIR)/.deps_plt
 DEPS=erts kernel stdlib
 
+DB2MAN = /usr/share/sgml/docbook/stylesheet/xsl/docbook-xsl/manpages/docbook.xsl
+XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
+MANS   = averell.1
+
+
 # =============================================================================
 # Verify that the programs we need to run are installed on this system
 # =============================================================================
@@ -69,13 +74,18 @@ update-deps:
 compile:
 	$(REBAR) compile
 
-doc:
+doc: man
 	$(REBAR) skip_deps=true doc
 
 eunit: compile clean-common-test-data
 	$(REBAR) skip_deps=true eunit
 
 test: compile eunit
+
+man: $(MANS)
+
+averell.1: manpage.xml
+	$(XP) $(DB2MAN) $<
 
 $(DEPS_PLT):
 	@echo Building local plt at $(DEPS_PLT)
@@ -105,6 +115,7 @@ clean:
 	- rm -rf $(CURDIR)/test/*.beam
 	- rm -rf $(CURDIR)/logs
 	- rm -rf $(CURDIR)/ebin
+	- rm -f $(MANS)
 	$(REBAR) skip_deps=true clean
 
 distclean: clean
