@@ -44,4 +44,5 @@ dist: clean deps
 	  rm -rf averell-$${vsn} && \
 	  git archive --prefix=averell-$${vsn}/ HEAD . | tar -xf - && \
 	  tar -cf - --exclude='.git' --exclude='.gitignore' deps | tar -xf - -C averell-$${vsn} && \
-	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz
+	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz && \
+	  rm -rf averell-$${vsn}
