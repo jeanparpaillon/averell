@@ -35,3 +35,7 @@ averell [-h] [-p [<port>]] [-c [<cors>]] [-v] [<dir>]
   -v          Verbose
   <dir>       Directory to serve [default: $CWD]
 ```
+
+# .avlaccess file format
+
+`.avlaccess` is of `avlaccess()` type, as defined in `averell.hrl`.

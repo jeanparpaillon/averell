@@ -1,17 +1,5 @@
 %% Copyright (c) 2014, Jean Parpaillon <jean.parpaillon@free.fr>
 %%
-%% Permission to use, copy, modify, and/or distribute this software for any
-%% purpose with or without fee is hereby granted, provided that the above
-%% copyright notice and this permission notice appear in all copies.
-%%
-%% THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-%% WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-%% MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-%% ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-%% WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-%%
 %% averell_static is largely derived from cowboy_static from cowboy app,
 %% written by Loïc Hoguin <essen@ninenines.eu>
 %%
@@ -40,7 +28,7 @@
 
 -include_lib("kernel/include/file.hrl").
 
--type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, extra()}.
+-type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, avlaccess(), extra()}.
 
 -spec init(_, _, _) -> {upgrade, protocol, cowboy_rest}.
 init(_, _, _) ->
@@ -87,7 +75,7 @@ fullpath([Segment|Tail], Acc) ->
 rest_init_info(Req, Path, Extra) ->
     case file:read_file_info(Path, [{time, universal}]) of
 	{ok, #file_info{type=regular}=Info} ->
-	    {ok, Req, {Path, {ok, Info}, Extra}};
+	    {ok, Req, {Path, {ok, Info}, get_avr_info(Path), Extra}};
 	{ok, #file_info{type=directory}=Info} ->
 	    case lists:keyfind(index, 1, Extra) of
 		false ->
@@ -95,17 +83,21 @@ rest_init_info(Req, Path, Extra) ->
 		{index, true} ->
 		    rest_init_dir(Req, Path, Extra);
 		{index, false} ->
-		    {ok, Req, {Path, {ok, Info}, Extra}}
+		    {ok, Req, {Path, {ok, Info}, get_avr_info(Path), Extra}}
 	    end;
 	{error, Err} ->
-	    {ok, Req, {Path, {error, Err}, Extra}}
+	    {ok, Req, {Path, {error, Err}, get_avr_info(Path), Extra}}
     end.
 
 
 rest_init_dir(Req, Path, Extra) ->
     IndexPath = filename:join([Path, <<"index.html">>]),
     Info = file:read_file_info(IndexPath, [{time, universal}]),
-    {ok, Req, {IndexPath, Info, Extra}}.
+    {ok, Req, {IndexPath, Info, get_avr_info(Path), Extra}}.
+
+
+get_avr_info(_Path) ->
+    [].
 
 
 -ifdef(TEST).
@@ -206,11 +198,11 @@ malformed_request(Req, State) ->
 -spec forbidden(Req, State)
 	       -> {boolean(), Req, State}
 		      when State::state().
-forbidden(Req, State={_, {ok, #file_info{type=directory}}, _}) ->
+forbidden(Req, State={_, {ok, #file_info{type=directory}}, _, _}) ->
     {true, Req, State};
-forbidden(Req, State={_, {error, eacces}, _}) ->
+forbidden(Req, State={_, {error, eacces}, _, _}) ->
     {true, Req, State};
-forbidden(Req, State={_, {ok, #file_info{access=Access}}, _})
+forbidden(Req, State={_, {ok, #file_info{access=Access}}, _, _})
   when Access =:= write; Access =:= none ->
     {true, Req, State};
 forbidden(Req, State) ->
@@ -221,13 +213,13 @@ forbidden(Req, State) ->
 -spec content_types_provided(Req, State)
 			    -> {[{binary(), get_file}], Req, State}
 				   when State::state().
-content_types_provided(Req, State={Path, _, _}) ->
+content_types_provided(Req, State={Path, _, _, _}) ->
     {[{cow_mimetypes:web(Path), get_file}], Req, State}.
 
 %% Assume the resource doesn't exist if it's not a regular file.
 
 -spec resource_exists(Req, State) -> {boolean(), Req, State} when State::state().
-resource_exists(Req, State={_, {ok, #file_info{type=regular}}, _}) ->
+resource_exists(Req, State={_, {ok, #file_info{type=regular}}, _, _}) ->
     {true, Req, State};
 resource_exists(Req, State) ->
     {false, Req, State}.
@@ -237,7 +229,7 @@ resource_exists(Req, State) ->
 -spec generate_etag(Req, State)
 		   -> {{strong | weak, binary()}, Req, State}
 			  when State::state().
-generate_etag(Req, State={Path, {ok, #file_info{size=Size, mtime=Mtime}}, Extra}) ->
+generate_etag(Req, State={Path, {ok, #file_info{size=Size, mtime=Mtime}}, _, Extra}) ->
     case lists:keyfind(etag, 1, Extra) of
 	false ->
 	    {generate_default_etag(Size, Mtime), Req, State};
@@ -255,7 +247,7 @@ generate_default_etag(Size, Mtime) ->
 -spec last_modified(Req, State)
 		   -> {calendar:datetime(), Req, State}
 			  when State::state().
-last_modified(Req, State={_, {ok, #file_info{mtime=Modified}}, _}) ->
+last_modified(Req, State={_, {ok, #file_info{mtime=Modified}}, _, _}) ->
     {Modified, Req, State}.
 
 %% Stream the file.
@@ -264,7 +256,7 @@ last_modified(Req, State={_, {ok, #file_info{mtime=Modified}}, _}) ->
 -spec get_file(Req, State)
 	      -> {{stream, non_neg_integer(), fun()}, Req, State}
 		     when State::state().
-get_file(Req, State={Path, {ok, #file_info{size=Size}}, _}) ->
+get_file(Req, State={Path, {ok, #file_info{size=Size}}, _, _}) ->
     Sendfile = fun (Socket, Transport) ->
 		       case Transport:sendfile(Socket, Path) of
 			   {ok, _} -> ok;
