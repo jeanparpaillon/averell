@@ -78,7 +78,6 @@ start(Opts) ->
 		false -> {index, true}
 	    end,
     Extra = [
-	     {mimetypes, cow_mimetypes, all},
 	     Index
 	    ],
     Handler = {"/[...]", averell_handler, {Dir, Extra}},
