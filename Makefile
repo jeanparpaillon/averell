@@ -27,22 +27,42 @@ DB2MAN = /usr/share/sgml/docbook/stylesheet/xsl/docbook-xsl/manpages/docbook.xsl
 XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
 MANS   = $(PROJECT).1
 
-.DEFAULT_GOAL = escript
-
 include erlang.mk
+
+all:: escript man
 
 man: $(MANS)
 
 %.1: %.1.xml
 	$(XP) $(DB2MAN) $<
 
-dist: clean deps
-	for dep in $(shell ls deps); do \
-	  [ -e deps/$${dep}/Makefile ] && $(MAKE) -C deps/$${dep} clean; \
-	done
+dist: deps
+	$(MAKE) clean
 	vsn=$(shell git describe --dirty --abbrev=7 --tags --always --first-parent 2>/dev/null || true) && \
 	  rm -rf averell-$${vsn} && \
 	  git archive --prefix=averell-$${vsn}/ HEAD . | tar -xf - && \
-	  tar -cf - --exclude='.git' --exclude='.gitignore' deps | tar -xf - -C averell-$${vsn} && \
+	  tar -cf - \
+	    --exclude-vcs \
+	    --exclude='deps/cowboy/examples' --exclude='deps/cowboy/doc' --exclude='deps/cowboy/test' \
+	    --exclude='deps/cowboy_cors/example' --exclude='deps/cowboy_cors/test' \
+	    --exclude='deps/cowlib/test' \
+	    --exclude='deps/getopt/doc' --exclude='deps/getopt/examples' --exclude='deps/getopt/test' \
+	    --exclude='deps/ranch/examples' --exclude='deps/ranch/guide' --exclude='deps/ranch/manual' --exclude='deps/ranch/test' \
+	    deps | tar -xf - -C averell-$${vsn} && \
 	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz && \
 	  rm -rf averell-$${vsn}
+
+clean:: clean-deps clean-local
+
+clean-deps:
+	@for dep in $(wildcard deps/*) ; do \
+		if [ -f $$dep/GNUmakefile ] || [ -f $$dep/makefile ] || [ -f $$dep/Makefile ] ; then \
+			$(MAKE) -C $$dep clean ; \
+		else \
+			echo "include $(CURDIR)/erlang.mk" | ERLC_OPTS=+debug_info $(MAKE) -f - -C $$dep clean ; \
+		fi ; \
+	done
+
+clean-local:
+	- rm -f $(MANS)
+	- rm -f $(PROJECT)
