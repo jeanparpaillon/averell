@@ -27,9 +27,9 @@ DB2MAN = /usr/share/sgml/docbook/stylesheet/xsl/docbook-xsl/manpages/docbook.xsl
 XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
 MANS   = $(PROJECT).1
 
-.DEFAULT_GOAL = escript
-
 include erlang.mk
+
+all:: escript man
 
 man: $(MANS)
 
@@ -52,6 +52,8 @@ dist: deps
 	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz && \
 	  rm -rf averell-$${vsn}
 
+clean:: clean-deps clean-local
+
 clean-deps:
 	@for dep in $(wildcard deps/*) ; do \
 		if [ -f $$dep/GNUmakefile ] || [ -f $$dep/makefile ] || [ -f $$dep/Makefile ] ; then \
@@ -60,3 +62,7 @@ clean-deps:
 			echo "include $(CURDIR)/erlang.mk" | ERLC_OPTS=+debug_info $(MAKE) -f - -C $$dep clean ; \
 		fi ; \
 	done
+
+clean-local:
+	- rm -f $(MANS)
+	- rm -f $(PROJECT)
