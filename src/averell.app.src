@@ -12,7 +12,8 @@
   {description, "Averell is a simple file HTTP server"},
   {modules, [
 	     averell,
-	     averell_cors
+	     averell_cors,
+	     averell_handler
 	    ]},
   {vsn, git}
  ]}.

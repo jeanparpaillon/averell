@@ -73,8 +73,15 @@ start(Opts) ->
     application:start(cowboy),
     Dir = proplists:get_value(dir, Opts),
     Port = proplists:get_value(port, Opts),
-    Handler = {"/[...]", cowboy_static, 
-	       {dir, Dir, [{mimetypes, cow_mimetypes, all}]}},
+    Index = case proplists:get_bool(noindex, Opts) of
+		true -> {index, false};
+		false -> {index, true}
+	    end,
+    Extra = [
+	     {mimetypes, cow_mimetypes, all},
+	     Index
+	    ],
+    Handler = {"/[...]", averell_handler, {Dir, Extra}},
     Dispatch = cowboy_router:compile([{'_', [Handler]}]),
     Env = [{dispatch, Dispatch}],
     Env2 = case proplists:get_bool(verbose, Opts) of
@@ -89,14 +96,10 @@ start(Opts) ->
 		     false ->
 			 {[cowboy_router, cowboy_handler], Env2}
 		 end,
-    Mw2 = case proplists:get_bool(noindex, Opts) of
-	      true -> Mw;
-	      false -> [ averell_index | Mw]
-	  end,
     case cowboy:start_http(http, 5, [{port, Port}], 
 			   [
 			    {env, Env3},
-			    {middlewares, Mw2}
+			    {middlewares, Mw}
 			   ]) of
 	{ok, _} ->
 	    ?info("Serving ~p on 0.0.0.0:~p~n", [Dir, proplists:get_value(port, Opts)]),
