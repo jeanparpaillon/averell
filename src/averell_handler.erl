@@ -18,6 +18,8 @@
 
 -module(averell_handler).
 
+-include("averell.hrl").
+
 -export([init/3]).
 -export([rest_init/2]).
 -export([malformed_request/2]).
@@ -59,11 +61,14 @@ rest_init(Req, {Path, Extra}) ->
     Filepath = filename:join([Dir|PathInfo]),
     Len = byte_size(Dir),
     case fullpath(Filepath) of
+	<< Dir:Len/binary >> ->
+	    rest_init_info(Req2, Filepath, Extra);
 	<< Dir:Len/binary, $/, _/binary >> ->
 	    rest_init_info(Req2, Filepath, Extra);
 	_ ->
 	    {ok, Req2, error}
     end.
+
 
 fullpath(Path) ->
     fullpath(filename:split(Path), []).
@@ -78,9 +83,30 @@ fullpath([<<"..">>|Tail], [_|Acc]) ->
 fullpath([Segment|Tail], Acc) ->
     fullpath(Tail, [Segment|Acc]).
 
+
 rest_init_info(Req, Path, Extra) ->
-    Info = file:read_file_info(Path, [{time, universal}]),
-    {ok, Req, {Path, Info, Extra}}.
+    case file:read_file_info(Path, [{time, universal}]) of
+	{ok, #file_info{type=regular}=Info} ->
+	    {ok, Req, {Path, {ok, Info}, Extra}};
+	{ok, #file_info{type=directory}=Info} ->
+	    case lists:keyfind(index, 1, Extra) of
+		false ->
+		    rest_init_dir(Req, Path, Extra);
+		{index, true} ->
+		    rest_init_dir(Req, Path, Extra);
+		{index, false} ->
+		    {ok, Req, {Path, {ok, Info}, Extra}}
+	    end;
+	{error, Err} ->
+	    {ok, Req, {Path, {error, Err}, Extra}}
+    end.
+
+
+rest_init_dir(Req, Path, Extra) ->
+    IndexPath = filename:join([Path, <<"index.html">>]),
+    Info = file:read_file_info(IndexPath, [{time, universal}]),
+    {ok, Req, {IndexPath, Info, Extra}}.
+
 
 -ifdef(TEST).
 fullpath_test_() ->
@@ -200,9 +226,7 @@ content_types_provided(Req, State={Path, _, _}) ->
 
 %% Assume the resource doesn't exist if it's not a regular file.
 
--spec resource_exists(Req, State)
-		     -> {boolean(), Req, State}
-			    when State::state().
+-spec resource_exists(Req, State) -> {boolean(), Req, State} when State::state().
 resource_exists(Req, State={_, {ok, #file_info{type=regular}}, _}) ->
     {true, Req, State};
 resource_exists(Req, State) ->
@@ -213,8 +237,7 @@ resource_exists(Req, State) ->
 -spec generate_etag(Req, State)
 		   -> {{strong | weak, binary()}, Req, State}
 			  when State::state().
-generate_etag(Req, State={Path, {ok, #file_info{size=Size, mtime=Mtime}},
-			  Extra}) ->
+generate_etag(Req, State={Path, {ok, #file_info{size=Size, mtime=Mtime}}, Extra}) ->
     case lists:keyfind(etag, 1, Extra) of
 	false ->
 	    {generate_default_etag(Size, Mtime), Req, State};
