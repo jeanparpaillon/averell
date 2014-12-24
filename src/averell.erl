@@ -36,8 +36,7 @@
 		  {dir,     undefined, undefined, {string, get_cwd()}, "Directory to serve"}
 		 ]).
 
--export([main/1, 
-	 onresponse/4]).
+-export([main/1]).
 
 main(Args) ->
     case getopt:parse(?argspec, Args) of
@@ -71,51 +70,11 @@ start(Opts) ->
     application:start(crypto),
     application:start(cowlib),
     application:start(cowboy),
-    Dir = proplists:get_value(dir, Opts),
-    Port = proplists:get_value(port, Opts),
-    Index = case proplists:get_bool(noindex, Opts) of
-		true -> {index, false};
-		false -> {index, true}
-	    end,
-    Extra = [
-	     Index
-	    ],
-    Handler = {"/[...]", averell_handler, {Dir, Extra}},
-    Dispatch = cowboy_router:compile([{'_', [Handler]}]),
-    Env = [{dispatch, Dispatch}],
-    Env2 = case proplists:get_bool(verbose, Opts) of
-	       true ->
-		   [{onresponse, fun ?MODULE:onresponse/4} | Env];
-	       false ->
-		   Env
-	   end,
-    {Mw, Env3} = case proplists:get_bool(cors, Opts) of
-		     true ->
-			 {[cowboy_router, cowboy_cors, cowboy_handler], [{cors_policy, averell_cors} | Env2]};
-		     false ->
-			 {[cowboy_router, cowboy_handler], Env2}
-		 end,
-    case cowboy:start_http(http, 5, [{port, Port}], 
-			   [
-			    {env, Env3},
-			    {middlewares, Mw}
-			   ]) of
-	{ok, _} ->
-	    ?info("Serving ~p on 0.0.0.0:~p~n", [Dir, proplists:get_value(port, Opts)]),
-	    loop();
-	{error, Err} ->
-	    ?error("Error starting server: ~p~n", [Err]),
-	    halt(1)
-    end.
+    averell_sup:start_link(Opts),
+    loop().
 
 loop() ->
     receive
 	_ ->
 	    loop()
     end.
-
-onresponse(Status, _Headers, _Body, Req) ->
-    {Method, _} = cowboy_req:method(Req),
-    {Path, _} = cowboy_req:path(Req),
-    ?info("~s ~s - ~p~n", [Method, Path, Status]),
-    Req.

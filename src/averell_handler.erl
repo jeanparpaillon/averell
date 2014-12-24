@@ -1,22 +1,37 @@
 %% Copyright (c) 2014, Jean Parpaillon <jean.parpaillon@free.fr>
 %%
-%% averell_static is largely derived from cowboy_static from cowboy app,
+%%% This file is provided to you under the Apache License,
+%%% Version 2.0 (the "License"); you may not use this file
+%%% except in compliance with the License.  You may obtain
+%%% a copy of the License at
+%%% 
+%%%   http://www.apache.org/licenses/LICENSE-2.0
+%%% 
+%%% Unless required by applicable law or agreed to in writing,
+%%% software distributed under the License is distributed on an
+%%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%%% KIND, either express or implied.  See the License for the
+%%% specific language governing permissions and limitations
+%%% under the License.
+%%% 
+%% @doc averell_static is largely derived from cowboy_static from cowboy app,
 %% written by Loïc Hoguin <essen@ninenines.eu>
 %%
-
 -module(averell_handler).
 
 -include("averell.hrl").
 
--export([init/3]).
--export([rest_init/2]).
--export([malformed_request/2]).
--export([forbidden/2]).
--export([content_types_provided/2]).
--export([resource_exists/2]).
--export([last_modified/2]).
--export([generate_etag/2]).
--export([get_file/2]).
+-export([init/3,
+	 rest_init/2,
+	 malformed_request/2,
+	 forbidden/2,
+	 content_types_provided/2,
+	 resource_exists/2,
+	 last_modified/2,
+	 generate_etag/2,
+	 get_file/2]).
+
+-export([onresponse/4]).
 
 -type extra_index() :: {index, boolean()}.
 -type extra_etag() :: {etag, module(), function()} | {etag, false}.
@@ -29,6 +44,12 @@
 -include_lib("kernel/include/file.hrl").
 
 -type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, avlaccess(), extra()}.
+
+onresponse(Status, _Headers, _Body, Req) ->
+    {Method, _} = cowboy_req:method(Req),
+    {Path, _} = cowboy_req:path(Req),
+    ?info("~s ~s - ~p~n", [Method, Path, Status]),
+    Req.
 
 -spec init(_, _, _) -> {upgrade, protocol, cowboy_rest}.
 init(_, _, _) ->
