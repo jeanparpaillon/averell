@@ -130,7 +130,7 @@ rest_init(Req, {Path, Extra}) ->
 
 
 fullpath([]) ->
-    "/";
+    <<".">>;
 fullpath(Path) ->
     fullpath(filename:split(Path), []).
 

@@ -151,18 +151,22 @@ get_info2(Basedir, Path, Tid) ->
 	[] ->
 	    Info = load_info(Basedir, Path, Tid),
 	    Merged = case Path of 
-			 "/" -> Info;
 			 <<".">> -> Info;
 			 _ -> merge_info(get_info2(Basedir, filename:dirname(Path), Tid), Info)
 		     end,
 	    ets:insert(Tid, {Path, Merged}),
 	    Merged;
-	[ Info ]-> Info
+	[ {_, Info} ]-> Info
     end.
 
-load_info(_Basedir, _Path, _Tid) ->
-    % Load .avlaccess file
-    [].
+load_info(Basedir, Path, _Tid) ->
+    AccessPath = filename:join([Basedir, Path, ".avlaccess"]),
+    case file:consult(AccessPath) of
+	{ok, [Infos]} -> Infos;
+	{ok, _} -> ?error("Syntax error in ~p", [AccessPath]), [];
+	{error, enoent} -> [];
+	{error, Err} -> ?error("Error reading ~p: ~p", [AccessPath, Err]), []
+    end.
 
 merge_info(ParentInfo, []) ->
     ParentInfo;
