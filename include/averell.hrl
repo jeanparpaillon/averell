@@ -17,6 +17,6 @@
 
 -type index_opt() :: {index, noindex | binary()}.
 
--type avl_opts() :: auth_opt() | index_opt().
+-type avl_opt() :: auth_opt() | index_opt().
 
--type avlaccess() :: [avl_opts()].
+-type avlaccess() :: [avl_opt()].
