@@ -120,6 +120,18 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       </arg>
       <arg choice="plain">
         <group choice="opt">
+          <arg choice="plain"><option>-d</option></arg>
+          <arg choice="plain"><option>--debug</option></arg>
+        </group>
+      </arg>
+      <arg choice="plain">
+        <group choice="opt">
+          <arg choice="plain"><option>-a</option></arg>
+          <arg choice="plain"><option>--access</option></arg>
+        </group>
+      </arg>
+      <arg choice="plain">
+        <group choice="opt">
           <arg choice="plain"><option>-I</option></arg>
           <arg choice="plain"><option>--no-index</option></arg>
         </group>
@@ -177,10 +189,26 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>-d</option></term>
+        <term><option>--debug</option></term>
+        <listitem>
+          <para>Debug mode (override verbose mode if any): print
+          request and response headers.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-a</option></term>
+        <term><option>--access</option></term>
+        <listitem>
+          <para>Read .avlaccess for per-directory properties.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>-I</option></term>
         <term><option>--no-index</option></term>
         <listitem>
-          <para>Do not serve index.html file automatically.</para>
+          <para>Do not serve index.html file automatically (can be
+          overriden by .avlaccess).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
