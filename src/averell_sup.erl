@@ -31,10 +31,6 @@
 %% supervisor callbacks
 -export([init/1]).
 
-%% Helper macro for declaring children of supervisor
-%% ChildSpec = {Id, StartFunc, Restart, Shutdown, Type, Modules}
--define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
-
 %% @spec start_link() -> ServerRet
 %% @doc API for starting the supervisor.
 start_link(Opts) ->
@@ -43,12 +39,16 @@ start_link(Opts) ->
 %% @spec init([]) -> SupervisorTree
 %% @doc supervisor callback.
 init(Opts) ->
-    C = case proplists:get_bool(avlaccess, Opts) of
-	    true -> [?CHILD(averell_access, worker)];
+    C = case proplists:get_bool(access, Opts) of
+	    true -> [get_access_config(Opts)];
 	    false -> []
 	end,
     C2 = [ get_http_config(Opts) | C ],
     {ok, {{one_for_one, 10, 10}, C2}}.
+
+get_access_config(Opts) ->
+    {averell_access, {averell_access, start_link, [Opts]}, permanent, 5000, worker, []}.
+
 
 get_http_config(Opts) ->
     Dir = proplists:get_value(dir, Opts),
@@ -63,10 +63,19 @@ get_http_config(Opts) ->
 					{"/[...]", averell_handler, {Dir, [ Index ]}}]
 				      }
 				     ]),
-    Hook = case proplists:get_bool(verbose, Opts) of
-	       true -> {onresponse, fun averell_handler:onresponse/4};
-	       false -> undefined
-	   end,
+    ProtoOpts = case proplists:get_bool(debug, Opts) of
+		    true -> 
+			[ {onresponse, fun averell_handler:onresponse2/4},
+			  {onrequest, fun averell_handler:onrequest2/1} ];
+		    false -> 
+			case proplists:get_bool(verbose, Opts) of
+			    true ->
+				[  {onresponse, fun averell_handler:onresponse1/4},
+				   {onrequest, fun averell_handler:onrequest1/1} ];
+			    false ->
+				[]
+			end
+		end,
     Env = lists_clean([
 		       {dispatch, Dispatch},
 		       case proplists:get_bool(cors, Opts) of
@@ -78,12 +87,7 @@ get_http_config(Opts) ->
 	     true -> [cowboy_router, cowboy_cors, cowboy_handler];
 	     false -> [cowboy_router, cowboy_handler]
 	 end,
-    ProtoOpts = lists_clean([
-			     {env, Env},
-			     {middlewares, Mw},
-			     Hook
-			    ]),
-    Args = [ http, 10, [{port, Port}], ProtoOpts ],
+    Args = [ http, 10, [{port, Port}], [ {env, Env}, {middlewares, Mw} | ProtoOpts ] ],
     ?info("Serving ~s on port ~p~n", [Dir, Port]),
     {averell_http, {cowboy, start_http, Args}, permanent, 5000, worker, [cowboy]}.
 

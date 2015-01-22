@@ -31,7 +31,9 @@
 		  {help,    $h,        "help",    undefined,           "Show help"},
 		  {port,    $p,        "port",    {integer, ?port},    "Port number"},
 		  {cors,    $c,        "cors",    {boolean, false},    "Enable CORS (allowed origins: *)"},
-		  {verbose, $v,        undefined, undefined,           "Verbose"},
+		  {access,  $a,        "access",  {boolean, false},    "Use .avlaccess files"},
+		  {verbose, $v,        "verbose", {boolean, false},    "Verbose"},
+		  {debug,   $d,        "debug",   {boolean, false},    "Debug (more verbose)"},
 		  {noindex, $I,        "no-index",{boolean, false},    "Do not server index.html automatically"},
 		  {dir,     undefined, undefined, {string, get_cwd()}, "Directory to serve"}
 		 ]).

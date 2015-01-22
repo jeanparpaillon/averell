@@ -1,8 +1,11 @@
--define(info(Msg), io:format("INFO: " ++ Msg)).
--define(info(Msg, Data), io:format("INFO: " ++ Msg, Data)).
+-define(debug(Msg), io:format("DEBUG: " ++ Msg ++ "~n", [])).
+-define(debug(Msg, Data), io:format("DEBUG: " ++ Msg ++ "~n", Data)).
 
--define(error(Msg), io:format("ERROR: " ++ Msg)).
--define(error(Msg, Data), io:format("ERROR: " ++ Msg, Data)).
+-define(info(Msg), io:format(Msg ++ "~n", [])).
+-define(info(Msg, Data), io:format(Msg ++ "~n", Data)).
+
+-define(error(Msg), io:format("ERROR: " ++ Msg ++ "~n", [])).
+-define(error(Msg, Data), io:format("ERROR: " ++ Msg ++ "~n", Data)).
 
 -type auth_method() :: basic | digest.
 

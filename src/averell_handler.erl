@@ -31,7 +31,10 @@
 	 generate_etag/2,
 	 get_file/2]).
 
--export([onresponse/4]).
+-export([onrequest1/1,
+	 onrequest2/1,
+	 onresponse1/4,
+	 onresponse2/4]).
 
 -type extra_index() :: {index, boolean()}.
 -type extra_etag() :: {etag, module(), function()} | {etag, false}.
@@ -45,10 +48,54 @@
 
 -type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, avlaccess(), extra()}.
 
-onresponse(Status, _Headers, _Body, Req) ->
+%
+% Verbose logging
+%
+onrequest1(Req) ->
+    Req.
+
+onresponse1(Status, _Headers, _Body, Req) ->
+    Method = cowboy_req:get(method, Req),
+    Path = cowboy_req:get(path, Req),
+    ?info("~s ~s - ~p", [Method, Path, Status]),
+    Req.
+
+%
+% Debug logging
+%
+onrequest2(Req) ->
+    ?info("### REQUEST HEADERS"),
     {Method, _} = cowboy_req:method(Req),
     {Path, _} = cowboy_req:path(Req),
-    ?info("~s ~s - ~p~n", [Method, Path, Status]),
+    {Version, _} = cowboy_req:version(Req),
+    {Hdrs, _} = cowboy_req:headers(Req),
+    ?info("~s ~s ~s", [Method, Path, Version]),
+    lists:map(fun ({K, V}) ->
+		      ?info("\t~s: ~s", [K, V])
+	      end, Hdrs),
+    case cowboy_req:has_body(Req) of
+	true ->
+	    case cowboy_req:body_length(Req) of
+		{undefined, _} -> ?info("### REQUEST BODY: empty ");
+		{0, _} -> ?info("### REQUEST BODY: empty ");
+		{Length, _} -> ?info("### REQUEST BODY: ~p", [Length])
+	    end;
+	false -> 
+	    ok
+    end,    
+    Req.
+
+onresponse2(Status, Headers, Body, Req) ->
+    ?info("### RESPONSE HEADERS"),
+    Version = cowboy_req:get(version, Req),
+    ?info("~s ~p", [Version, Status]),
+    lists:map(fun ({K, V}) ->
+		      ?info("\t~s: ~s", [K, V])
+	      end, Headers),
+    case Body of
+	<<>> -> ?info("### RESPONSE BODY: empty or streamed ");
+	_ -> ?info("### RESPONSE BODY: < ~p bytes >", [byte_size(Body)])
+    end,
     Req.
 
 -spec init(_, _, _) -> {upgrade, protocol, cowboy_rest}.
@@ -66,21 +113,27 @@ rest_init(Req, {Path, Extra}) when is_list(Path) ->
     rest_init(Req, {list_to_binary(Path), Extra});
 rest_init(Req, {Path, Extra}) ->
     Dir = fullpath(filename:absname(Path)),
-    {PathInfo, Req2} = cowboy_req:path_info(Req),
-    Filepath = filename:join([Dir|PathInfo]),
+    {PathInfo, Req2} = case cowboy_req:path_info(Req) of
+			   {[], R} -> {[], R};
+			   {PI, R} -> {filename:join(PI), R}
+		       end,
+    Filepath = filename:join([Dir, PathInfo]),
     Len = byte_size(Dir),
     case fullpath(Filepath) of
 	<< Dir:Len/binary >> ->
-	    rest_init_info(Req2, Filepath, Extra);
+	    rest_init_info(Req2, Filepath, fullpath(PathInfo), Extra);
 	<< Dir:Len/binary, $/, _/binary >> ->
-	    rest_init_info(Req2, Filepath, Extra);
+	    rest_init_info(Req2, Filepath, fullpath(PathInfo), Extra);
 	_ ->
 	    {ok, Req2, error}
     end.
 
 
+fullpath([]) ->
+    "/";
 fullpath(Path) ->
     fullpath(filename:split(Path), []).
+
 fullpath([], Acc) ->
     filename:join(lists:reverse(Acc));
 fullpath([<<".">>|Tail], Acc) ->
@@ -93,32 +146,28 @@ fullpath([Segment|Tail], Acc) ->
     fullpath(Tail, [Segment|Acc]).
 
 
-rest_init_info(Req, Path, Extra) ->
+rest_init_info(Req, Path, Reqpath, Extra) ->
     case file:read_file_info(Path, [{time, universal}]) of
 	{ok, #file_info{type=regular}=Info} ->
-	    {ok, Req, {Path, {ok, Info}, get_avr_info(Path), Extra}};
+	    {ok, Req, {Path, {ok, Info}, averell_access:get_info(Reqpath), Extra}};
 	{ok, #file_info{type=directory}=Info} ->
 	    case lists:keyfind(index, 1, Extra) of
 		false ->
-		    rest_init_dir(Req, Path, Extra);
+		    rest_init_dir(Req, Path, Reqpath, Extra);
 		{index, true} ->
-		    rest_init_dir(Req, Path, Extra);
+		    rest_init_dir(Req, Path, Reqpath, Extra);
 		{index, false} ->
-		    {ok, Req, {Path, {ok, Info}, get_avr_info(Path), Extra}}
+		    {ok, Req, {Path, {ok, Info}, [], Extra}}
 	    end;
 	{error, Err} ->
-	    {ok, Req, {Path, {error, Err}, get_avr_info(Path), Extra}}
+	    {ok, Req, {Path, {error, Err}, [], Extra}}
     end.
 
 
-rest_init_dir(Req, Path, Extra) ->
+rest_init_dir(Req, Path, Reqpath, Extra) ->
     IndexPath = filename:join([Path, <<"index.html">>]),
     Info = file:read_file_info(IndexPath, [{time, universal}]),
-    {ok, Req, {IndexPath, Info, get_avr_info(Path), Extra}}.
-
-
-get_avr_info(_Path) ->
-    [].
+    {ok, Req, {IndexPath, Info, averell_access:get_info(Reqpath), Extra}}.
 
 
 -ifdef(TEST).
