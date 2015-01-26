@@ -219,5 +219,56 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       </varlistentry>
     </variablelist>
   </refsect1>
+  <refsect1 id="avlaccess">
+    <title><filename>.avlaccess</filename> FILE FORMAT</title>
+    <para>
+      This section describes the <filename>.avlaccess</filename> file format.
+    </para>
+    <para>
+      <filename>.avlaccess</filename> files can be placed anywhere in
+      a directory served by &dhpackage;. It contains properties
+      applicable to this directory. Properties are inherited from
+      parent directories.
+    </para>
+    <refsect2>
+      <title>SYNTAX</title>
+      <para>
+	File is parsed using the <varname>file:consult/1</varname>
+	function of erlang/OTP (see <ulink
+	url="http://www.erlang.org/doc/man/file.html#consult-1">erlang/OTP
+	documentation</ulink>). Parser is strict, be careful with
+	ending dot, comma between tuples and no comma after last
+	tuple.
+      </para>
+      <para>
+	Example of such file is given below:
+	<programlisting>
+	  [
+  	    {option1, value1},
+	    {option2, value2}
+	  ].
+	</programlisting>
+      </para>
+    </refsect2>
+    <refsect2>
+      <title>OPTIONS</title>
+      <variablelist>
+	<varlistentry>
+	  <term>{index, &lt;&lt;"index.html"&gt;&gt;}</term>
+	  <listitem>
+	    <para>When requesting a directory path, look for the given
+	    filename and serves it if it exists. 403 otherwise.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>{index, noindex}</term>
+	  <listitem>
+	    <para>Do not server any index file when requesting a
+	    directory path. Such requests will return 403.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </refsect2>
+  </refsect1>
 </refentry>
 
