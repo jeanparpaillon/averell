@@ -56,11 +56,11 @@ init() ->
     LogLevel = application:get_env(averell, log, ?LOG_INFO),
     loop(LogLevel).
 
-loop(MinLevel) ->
+loop(MaxLevel) ->
     receive
-	{log, Level, Prefix, Msg, Data} when Level >= MinLevel ->
+	{log, Level, Prefix, Msg, Data} when Level =< MaxLevel ->
 	    io:format(Prefix ++ Msg ++ "~n", Data),
-	    loop(MinLevel);
+	    loop(MaxLevel);
 	{log, _, _, _, _} -> 
-	    loop(MinLevel)
+	    loop(MaxLevel)
     end.
