@@ -32,8 +32,7 @@
 		  {port,    $p,        "port",    {integer, ?port},    "Port number"},
 		  {cors,    $c,        "cors",    {boolean, false},    "Enable CORS (allowed origins: *)"},
 		  {access,  $a,        "access",  {boolean, false},    "Use .avlaccess files"},
-		  {verbose, $v,        "verbose", {boolean, false},    "Verbose"},
-		  {debug,   $d,        "debug",   {boolean, false},    "Debug (more verbose)"},
+		  {verbose, $v,        "verbose", integer,             "Verbose (multiple times increase verbosity)"},
 		  {noindex, $I,        "no-index",{boolean, false},    "Do not server index.html automatically"},
 		  {dir,     undefined, undefined, {string, get_cwd()}, "Directory to serve"}
 		 ]).
@@ -68,15 +67,20 @@ get_cwd() ->
     end.
 
 start(Opts) ->
-    application:start(ranch),
-    application:start(crypto),
-    application:start(cowlib),
-    application:start(cowboy),
-    averell_sup:start_link(Opts),
+    application:load(averell),
+    application:set_env(averell, dir,     proplists:get_value(dir, Opts)),
+    Index = case proplists:get_bool(noindex, Opts) of
+		false -> <<"index.html">>;
+		true -> noindex
+	    end,
+    application:set_env(averell, index,   Index),
+    application:set_env(averell, port,    proplists:get_value(port, Opts)),
+    application:set_env(averell, cors,    proplists:get_bool(cors, Opts)),
+    application:set_env(averell, access,  proplists:get_bool(access, Opts)),
+    application:set_env(averell, log,     proplists:get_value(verbose, Opts, 0)),
+    application:set_env(averell, local,   true),
+    {ok, _} = application:ensure_all_started(averell),
     loop().
 
 loop() ->
-    receive
-	_ ->
-	    loop()
-    end.
+    receive _ -> loop() end.

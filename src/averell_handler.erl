@@ -31,10 +31,8 @@
 	 generate_etag/2,
 	 get_file/2]).
 
--export([onrequest1/1,
-	 onrequest2/1,
-	 onresponse1/4,
-	 onresponse2/4]).
+-export([onrequest/1,
+	 onresponse/4]).
 
 -type extra_index() :: {index, boolean()}.
 -type extra_etag() :: {etag, module(), function()} | {etag, false}.
@@ -46,57 +44,8 @@
 
 -include_lib("kernel/include/file.hrl").
 
--type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, avlaccess(), extra()}.
+-type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, avlinfos(), extra()}.
 
-%
-% Verbose logging
-%
-onrequest1(Req) ->
-    Req.
-
-onresponse1(Status, _Headers, _Body, Req) ->
-    Method = cowboy_req:get(method, Req),
-    Path = cowboy_req:get(path, Req),
-    ?info("~s ~s - ~p", [Method, Path, Status]),
-    Req.
-
-%
-% Debug logging
-%
-onrequest2(Req) ->
-    ?info("### REQUEST HEADERS"),
-    {Method, _} = cowboy_req:method(Req),
-    {Path, _} = cowboy_req:path(Req),
-    {Version, _} = cowboy_req:version(Req),
-    {Hdrs, _} = cowboy_req:headers(Req),
-    ?info("~s ~s ~s", [Method, Path, Version]),
-    lists:map(fun ({K, V}) ->
-		      ?info("\t~s: ~s", [K, V])
-	      end, Hdrs),
-    case cowboy_req:has_body(Req) of
-	true ->
-	    case cowboy_req:body_length(Req) of
-		{undefined, _} -> ?info("### REQUEST BODY: empty ");
-		{0, _} -> ?info("### REQUEST BODY: empty ");
-		{Length, _} -> ?info("### REQUEST BODY: ~p", [Length])
-	    end;
-	false -> 
-	    ok
-    end,    
-    Req.
-
-onresponse2(Status, Headers, Body, Req) ->
-    ?info("### RESPONSE HEADERS"),
-    Version = cowboy_req:get(version, Req),
-    ?info("~s ~p", [Version, Status]),
-    lists:map(fun ({K, V}) ->
-		      ?info("\t~s: ~s", [K, V])
-	      end, Headers),
-    case Body of
-	<<>> -> ?info("### RESPONSE BODY: empty or streamed ");
-	_ -> ?info("### RESPONSE BODY: < ~p bytes >", [byte_size(Body)])
-    end,
-    Req.
 
 -spec init(_, _, _) -> {upgrade, protocol, cowboy_rest}.
 init(_, _, _) ->
@@ -109,9 +58,9 @@ init(_, _, _) ->
 -spec rest_init(Req, opts())
 	       -> {ok, Req, error | state()}
 		      when Req::cowboy_req:req().
-rest_init(Req, {Path, Extra}) when is_list(Path) ->
-    rest_init(Req, {list_to_binary(Path), Extra});
-rest_init(Req, {Path, Extra}) ->
+rest_init(Req, Path) when is_list(Path) ->
+    rest_init(Req, list_to_binary(Path));
+rest_init(Req, Path) ->
     Dir = fullpath(filename:absname(Path)),
     {PathInfo, Req2} = case cowboy_req:path_info(Req) of
 			   {[], R} -> {[], R};
@@ -121,9 +70,9 @@ rest_init(Req, {Path, Extra}) ->
     Len = byte_size(Dir),
     case fullpath(Filepath) of
 	<< Dir:Len/binary >> ->
-	    rest_init_info(Req2, Filepath, fullpath(PathInfo), Extra);
+	    rest_init_info(Req2, Filepath, fullpath(PathInfo));
 	<< Dir:Len/binary, $/, _/binary >> ->
-	    rest_init_info(Req2, Filepath, fullpath(PathInfo), Extra);
+	    rest_init_info(Req2, Filepath, fullpath(PathInfo));
 	_ ->
 	    {ok, Req2, error}
     end.
@@ -146,28 +95,27 @@ fullpath([Segment|Tail], Acc) ->
     fullpath(Tail, [Segment|Acc]).
 
 
-rest_init_info(Req, Path, Reqpath, Extra) ->
+rest_init_info(Req, Path, Reqpath) ->
+    Extra = averell_infos:get_info(Reqpath),
     case file:read_file_info(Path, [{time, universal}]) of
 	{ok, #file_info{type=regular}=Info} ->
-	    {ok, Req, {Path, {ok, Info}, averell_access:get_info(Reqpath), Extra}};
+	    {ok, Req, {Path, {ok, Info}, Extra}};
 	{ok, #file_info{type=directory}=Info} ->
-	    case lists:keyfind(index, 1, Extra) of
-		false ->
-		    rest_init_dir(Req, Path, Reqpath, Extra);
-		{index, true} ->
-		    rest_init_dir(Req, Path, Reqpath, Extra);
-		{index, false} ->
-		    {ok, Req, {Path, {ok, Info}, [], Extra}}
+	    case proplists:get_value(index, Extra) of
+		noindex ->
+		    {ok, Req, {Path, {ok, Info}, Extra}};
+		Index ->
+		    rest_init_dir(Req, Path, Index, Extra)
 	    end;
 	{error, Err} ->
-	    {ok, Req, {Path, {error, Err}, [], Extra}}
+	    {ok, Req, {Path, {error, Err}, Extra}}
     end.
 
 
-rest_init_dir(Req, Path, Reqpath, Extra) ->
-    IndexPath = filename:join([Path, <<"index.html">>]),
+rest_init_dir(Req, Path, Index, Extra) ->
+    IndexPath = filename:join([Path, Index]),
     Info = file:read_file_info(IndexPath, [{time, universal}]),
-    {ok, Req, {IndexPath, Info, averell_access:get_info(Reqpath), Extra}}.
+    {ok, Req, {IndexPath, Info, Extra}}.
 
 
 -ifdef(TEST).
@@ -268,11 +216,11 @@ malformed_request(Req, State) ->
 -spec forbidden(Req, State)
 	       -> {boolean(), Req, State}
 		      when State::state().
-forbidden(Req, State={_, {ok, #file_info{type=directory}}, _, _}) ->
+forbidden(Req, State={_, {ok, #file_info{type=directory}}, _}) ->
     {true, Req, State};
-forbidden(Req, State={_, {error, eacces}, _, _}) ->
+forbidden(Req, State={_, {error, eacces}, _}) ->
     {true, Req, State};
-forbidden(Req, State={_, {ok, #file_info{access=Access}}, _, _})
+forbidden(Req, State={_, {ok, #file_info{access=Access}}, _})
   when Access =:= write; Access =:= none ->
     {true, Req, State};
 forbidden(Req, State) ->
@@ -283,13 +231,13 @@ forbidden(Req, State) ->
 -spec content_types_provided(Req, State)
 			    -> {[{binary(), get_file}], Req, State}
 				   when State::state().
-content_types_provided(Req, State={Path, _, _, _}) ->
+content_types_provided(Req, State={Path, _, _}) ->
     {[{cow_mimetypes:web(Path), get_file}], Req, State}.
 
 %% Assume the resource doesn't exist if it's not a regular file.
 
 -spec resource_exists(Req, State) -> {boolean(), Req, State} when State::state().
-resource_exists(Req, State={_, {ok, #file_info{type=regular}}, _, _}) ->
+resource_exists(Req, State={_, {ok, #file_info{type=regular}}, _}) ->
     {true, Req, State};
 resource_exists(Req, State) ->
     {false, Req, State}.
@@ -299,13 +247,15 @@ resource_exists(Req, State) ->
 -spec generate_etag(Req, State)
 		   -> {{strong | weak, binary()}, Req, State}
 			  when State::state().
-generate_etag(Req, State={Path, {ok, #file_info{size=Size, mtime=Mtime}}, _, Extra}) ->
-    case lists:keyfind(etag, 1, Extra) of
-	false ->
+generate_etag(Req, State={Path, {ok, #file_info{size=Size, mtime=Mtime}}, Extra}) ->
+    case proplists:get_value(etag, Extra) of
+	undefined ->
 	    {generate_default_etag(Size, Mtime), Req, State};
-	{etag, Module, Function} ->
+	default ->
+	    {generate_default_etag(Size, Mtime), Req, State};
+	{Module, Function} ->
 	    {Module:Function(Path, Size, Mtime), Req, State};
-	{etag, false} ->
+	false ->
 	    {undefined, Req, State}
     end.
 
@@ -317,7 +267,7 @@ generate_default_etag(Size, Mtime) ->
 -spec last_modified(Req, State)
 		   -> {calendar:datetime(), Req, State}
 			  when State::state().
-last_modified(Req, State={_, {ok, #file_info{mtime=Modified}}, _, _}) ->
+last_modified(Req, State={_, {ok, #file_info{mtime=Modified}}, _}) ->
     {Modified, Req, State}.
 
 %% Stream the file.
@@ -326,7 +276,7 @@ last_modified(Req, State={_, {ok, #file_info{mtime=Modified}}, _, _}) ->
 -spec get_file(Req, State)
 	      -> {{stream, non_neg_integer(), fun()}, Req, State}
 		     when State::state().
-get_file(Req, State={Path, {ok, #file_info{size=Size}}, _, _}) ->
+get_file(Req, State={Path, {ok, #file_info{size=Size}}, _}) ->
     Sendfile = fun (Socket, Transport) ->
 		       case Transport:sendfile(Socket, Path) of
 			   {ok, _} -> ok;
@@ -335,3 +285,57 @@ get_file(Req, State={Path, {ok, #file_info{size=Size}}, _, _}) ->
 		       end
 	       end,
     {{stream, Size, Sendfile}, Req, State}.
+
+%
+% Logging
+%
+onrequest(Req) ->
+    onrequest(Req, application:get_env(averell, log, ?LOG_INFO)).
+
+onresponse(Status, Headers, Body, Req) ->
+    onresponse(Status, Headers, Body, Req, application:get_env(averell, log, ?LOG_INFO)).
+
+onrequest(Req, Lvl) when Lvl >= ?LOG_TRACE ->
+    ?debug("### REQUEST HEADERS"),
+    {Method, _} = cowboy_req:method(Req),
+    {Path, _} = cowboy_req:path(Req),
+    {Version, _} = cowboy_req:version(Req),
+    {Hdrs, _} = cowboy_req:headers(Req),
+    ?debug("~s ~s ~s", [Method, Path, Version]),
+    lists:map(fun ({K, V}) ->
+		      ?debug("\t~s: ~s", [K, V])
+	      end, Hdrs),
+    case cowboy_req:has_body(Req) of
+	true ->
+	    case cowboy_req:body_length(Req) of
+		{undefined, _} -> ?debug("### REQUEST BODY: empty ");
+		{0, _} -> ?debug("### REQUEST BODY: empty ");
+		{Length, _} -> ?debug("### REQUEST BODY: ~p", [Length])
+	    end;
+	false -> 
+	    ok
+    end,    
+    Req;
+onrequest(Req, _Lvl) ->
+    Req.
+
+
+onresponse(Status, Headers, Body, Req, Lvl) when Lvl >= ?LOG_TRACE ->
+    ?debug("### RESPONSE HEADERS"),
+    Version = cowboy_req:get(version, Req),
+    ?debug("~s ~p", [Version, Status]),
+    lists:map(fun ({K, V}) ->
+		      ?debug("\t~s: ~s", [K, V])
+	      end, Headers),
+    case Body of
+	<<>> -> ?debug("### RESPONSE BODY: empty or streamed ");
+	_ -> ?debug("### RESPONSE BODY: < ~p bytes >", [byte_size(Body)])
+    end,
+    Req;
+onresponse(Status, _Headers, _Body, Req, Lvl) when Lvl >= ?LOG_DEBUG ->
+    Method = cowboy_req:get(method, Req),
+    Path = cowboy_req:get(path, Req),
+    ?debug("~s ~s - ~p", [Method, Path, Status]),
+    Req;
+onresponse(_, _, _, Req, _Lvl) ->
+    Req.

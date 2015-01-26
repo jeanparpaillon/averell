@@ -1,11 +1,17 @@
--define(debug(Msg), io:format("DEBUG: " ++ Msg ++ "~n", [])).
--define(debug(Msg, Data), io:format("DEBUG: " ++ Msg ++ "~n", Data)).
+-define(LOG_NO,    -2).
+-define(LOG_ERROR, -1).
+-define(LOG_INFO,   0).
+-define(LOG_DEBUG,  1).
+-define(LOG_TRACE,  2).
 
--define(info(Msg), io:format(Msg ++ "~n", [])).
--define(info(Msg, Data), io:format(Msg ++ "~n", Data)).
+-define(debug(Msg),       averell_log:log(?LOG_DEBUG, "DEBUG: ", Msg, [])).
+-define(debug(Msg, Data), averell_log:log(?LOG_DEBUG, "DEBUG: ", Msg, Data)).
 
--define(error(Msg), io:format("ERROR: " ++ Msg ++ "~n", [])).
--define(error(Msg, Data), io:format("ERROR: " ++ Msg ++ "~n", Data)).
+-define(info(Msg),        averell_log:log(?LOG_INFO, "INFO: ", Msg, [])).
+-define(info(Msg, Data),  averell_log:log(?LOG_INFO, "INFO: ", Msg, Data)).
+
+-define(error(Msg),       averell_log:log(?LOG_ERROR, "ERROR: ", Msg, [])).
+-define(error(Msg, Data), averell_log:log(?LOG_ERROR, "ERROR: ", Msg, Data)).
 
 -type auth_method() :: basic | digest.
 
@@ -19,4 +25,4 @@
 
 -type avl_opt() :: auth_opt() | index_opt().
 
--type avlaccess() :: [avl_opt()].
+-type avlinfos() :: [avl_opt()].

@@ -26,64 +26,50 @@
 -behaviour(supervisor).
 
 %% External exports
--export([start_link/1]).
+-export([start_link/0]).
 
 %% supervisor callbacks
 -export([init/1]).
 
 %% @spec start_link() -> ServerRet
 %% @doc API for starting the supervisor.
-start_link(Opts) ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, Opts).
+start_link() ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %% @spec init([]) -> SupervisorTree
 %% @doc supervisor callback.
-init(Opts) ->
-    C = case proplists:get_bool(access, Opts) of
-	    true -> [get_access_config(Opts)];
-	    false -> []
-	end,
-    C2 = [ get_http_config(Opts) | C ],
-    {ok, {{one_for_one, 10, 10}, C2}}.
+init(_) ->
+    Children = [ get_http_child(), get_log_child() ],
+    {ok, {{one_for_one, 10, 10}, Children}}.
 
-get_access_config(Opts) ->
-    {averell_access, {averell_access, start_link, [Opts]}, permanent, 5000, worker, []}.
+get_log_child() ->
+    {averell_log, {averell_log, start_link, []}, permanent, 5000, worker, []}.
 
-
-get_http_config(Opts) ->
-    Dir = proplists:get_value(dir, Opts),
-    Port = proplists:get_value(port, Opts),
-    Index = case proplists:get_bool(noindex, Opts) of
-		true -> {index, false};
-		false -> {index, true}
-	    end,
+get_http_child() ->
+    Dir = application:get_env(averell, dir, undefined),
+    Port = application:get_env(averell, port, 80),
+    Index = application:get_env(averell, index, noindex),
     Dispatch = cowboy_router:compile([
 				      {'_', 
 				       [
-					{"/[...]", averell_handler, {Dir, [ Index ]}}]
+					{"/[...]", averell_handler, Dir}]
 				      }
 				     ]),
-    ProtoOpts = case proplists:get_bool(debug, Opts) of
-		    true -> 
-			[ {onresponse, fun averell_handler:onresponse2/4},
-			  {onrequest, fun averell_handler:onrequest2/1} ];
-		    false -> 
-			case proplists:get_bool(verbose, Opts) of
-			    true ->
-				[  {onresponse, fun averell_handler:onresponse1/4},
-				   {onrequest, fun averell_handler:onrequest1/1} ];
-			    false ->
-				[]
-			end
+    ProtoOpts = case application:get_env(averell, log, ?LOG_INFO) of
+		    Lvl when Lvl >= ?LOG_DEBUG ->
+			[ {onresponse, fun averell_handler:onresponse/4},
+			  {onrequest, fun averell_handler:onrequest/1} ];
+		    _ ->
+			[]
 		end,
     Env = lists_clean([
 		       {dispatch, Dispatch},
-		       case proplists:get_bool(cors, Opts) of
+		       case application:get_env(averell, cors, falsexs) of
 			   true -> {cors_policy, averell_cors};
 			   false -> undefined
 		       end
 		      ]),
-    Mw = case proplists:get_bool(cors, Opts) of
+    Mw = case application:get_env(averell, cors, false) of
 	     true -> [cowboy_router, cowboy_cors, cowboy_handler];
 	     false -> [cowboy_router, cowboy_handler]
 	 end,
