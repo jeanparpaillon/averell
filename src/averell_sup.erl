@@ -64,7 +64,7 @@ get_http_child() ->
 		end,
     Env = lists_clean([
 		       {dispatch, Dispatch},
-		       case application:get_env(averell, cors, falsexs) of
+		       case application:get_env(averell, cors, false) of
 			   true -> {cors_policy, averell_cors};
 			   false -> undefined
 		       end
