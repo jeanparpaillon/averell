@@ -17,7 +17,7 @@
 PROJECT = averell
 
 DEPS = cowboy getopt
-dep_cowboy = git https://github.com/ninenines/cowboy 1.0.4
+dep_cowboy_commit = 2.0.0-pre.1
 dep_getopt = git https://github.com/jcomellas/getopt.git v0.8.2
 
 ESCRIPT_EMU_ARGS = -smp auto -pa . -noshell -noinput -sasl errlog_type error -escript main averell
@@ -29,6 +29,8 @@ MANS   = $(PROJECT).1
 include erlang.mk
 
 all:: escript man
+
+test-build:: escript
 
 man: $(MANS)
 
@@ -43,7 +45,6 @@ dist: deps
 	  tar -cf - \
 	    --exclude-vcs \
 	    --exclude='deps/cowboy/examples' --exclude='deps/cowboy/doc' --exclude='deps/cowboy/test' \
-	    --exclude='deps/cowboy_cors/example' --exclude='deps/cowboy_cors/test' \
 	    --exclude='deps/cowlib/test' \
 	    --exclude='deps/getopt/doc' --exclude='deps/getopt/examples' --exclude='deps/getopt/test' \
 	    --exclude='deps/ranch/examples' --exclude='deps/ranch/guide' --exclude='deps/ranch/manual' --exclude='deps/ranch/test' \

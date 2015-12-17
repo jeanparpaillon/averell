@@ -21,8 +21,7 @@
 
 -include("averell.hrl").
 
--export([init/3,
-	 rest_init/2,
+-export([init/2,
 	 malformed_request/2,
 	 is_authorized/2,
 	 forbidden/2,
@@ -48,34 +47,24 @@
 -type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, avlinfos(), extra()}.
 
 
--spec init(_, _, _) -> {upgrade, protocol, cowboy_rest}.
-init(_, _, _) ->
-    {upgrade, protocol, cowboy_rest}.
-
-%% Resolve the file that will be sent and get its file information.
-%% If the handler is configured to manage a directory, check that the
-%% requested file is inside the configured directory.
-
--spec rest_init(Req, opts())
-	       -> {ok, Req, error | state()}
-		      when Req::cowboy_req:req().
-rest_init(Req, Path) when is_list(Path) ->
-    rest_init(Req, list_to_binary(Path));
-rest_init(Req, Path) ->
+-spec init(Req, opts()) -> {cowboy_rest, Req, error | state()} when Req::cowboy_req:req().
+init(Req, Path) when is_list(Path) ->
+    init(Req, list_to_binary(Path));
+init(Req, Path) ->
     Dir = fullpath(filename:absname(Path)),
-    {PathInfo, Req2} = case cowboy_req:path_info(Req) of
-			   {[], R} -> {[], R};
-			   {PI, R} -> {filename:join(PI), R}
-		       end,
+    PathInfo = case cowboy_req:path_info(Req) of
+		   [] -> [];
+		   PI -> filename:join(PI)
+	       end,
     Filepath = filename:join([Dir, PathInfo]),
     Len = byte_size(Dir),
     case fullpath(Filepath) of
 	<< Dir:Len/binary >> ->
-	    rest_init_info(Req2, Filepath, fullpath(PathInfo));
+	    init_info(Req, Filepath, fullpath(PathInfo));
 	<< Dir:Len/binary, $/, _/binary >> ->
-	    rest_init_info(Req2, Filepath, fullpath(PathInfo));
+	    init_info(Req, Filepath, fullpath(PathInfo));
 	_ ->
-	    {ok, Req2, error}
+	    {cowboy_rest, Req, error}
     end.
 
 
@@ -96,27 +85,27 @@ fullpath([Segment|Tail], Acc) ->
     fullpath(Tail, [Segment|Acc]).
 
 
-rest_init_info(Req, Path, Reqpath) ->
+init_info(Req, Path, Reqpath) ->
     Extra = averell_infos:get_info(Reqpath),
     case file:read_file_info(Path, [{time, universal}]) of
 	{ok, #file_info{type=regular}=Info} ->
-	    {ok, Req, {Path, {ok, Info}, Extra}};
+	    {cowboy_rest, Req, {Path, {ok, Info}, Extra}};
 	{ok, #file_info{type=directory}=Info} ->
 	    case proplists:get_value(index, Extra) of
 		noindex ->
-		    {ok, Req, {Path, {ok, Info}, Extra}};
+		    {cowboy_rest, Req, {Path, {ok, Info}, Extra}};
 		Index ->
-		    rest_init_dir(Req, Path, Index, Extra)
+		    init_dir(Req, Path, Index, Extra)
 	    end;
 	{error, Err} ->
-	    {ok, Req, {Path, {error, Err}, Extra}}
+	    {cowboy_rest, Req, {Path, {error, Err}, Extra}}
     end.
 
 
-rest_init_dir(Req, Path, Index, Extra) ->
+init_dir(Req, Path, Index, Extra) ->
     IndexPath = filename:join([Path, Index]),
     Info = file:read_file_info(IndexPath, [{time, universal}]),
-    {ok, Req, {IndexPath, Info, Extra}}.
+    {cowboy_rest, Req, {IndexPath, Info, Extra}}.
 
 
 -ifdef(TEST).
@@ -303,10 +292,10 @@ onresponse(Status, Headers, Body, Req) ->
 
 onrequest(Req, Lvl) when Lvl >= ?LOG_TRACE ->
     ?debug("### REQUEST HEADERS"),
-    {Method, _} = cowboy_req:method(Req),
-    {Path, _} = cowboy_req:path(Req),
-    {Version, _} = cowboy_req:version(Req),
-    {Hdrs, _} = cowboy_req:headers(Req),
+    Method = cowboy_req:method(Req),
+    Path = cowboy_req:path(Req),
+    Version = cowboy_req:version(Req),
+    Hdrs = cowboy_req:headers(Req),
     ?debug("~s ~s ~s", [Method, Path, Version]),
     lists:map(fun ({K, V}) ->
 		      ?debug("\t~s: ~s", [K, V])
@@ -314,9 +303,9 @@ onrequest(Req, Lvl) when Lvl >= ?LOG_TRACE ->
     case cowboy_req:has_body(Req) of
 	true ->
 	    case cowboy_req:body_length(Req) of
-		{undefined, _} -> ?debug("### REQUEST BODY: empty ");
-		{0, _} -> ?debug("### REQUEST BODY: empty ");
-		{Length, _} -> ?debug("### REQUEST BODY: ~p", [Length])
+		undefined -> ?debug("### REQUEST BODY: empty ");
+		0 -> ?debug("### REQUEST BODY: empty ");
+		Length -> ?debug("### REQUEST BODY: ~p", [Length])
 	    end;
 	false -> 
 	    ok
