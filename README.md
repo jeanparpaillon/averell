@@ -6,6 +6,8 @@ python's SimpleHTTPServer module.
 
 It is based on the erlang cowboy web server.
 
+[![Build Status](https://travis-ci.org/jeanparpaillon/averell.svg)](https://travis-ci.org/jeanparpaillon/averell)
+
 # Compilation
 
 ```
