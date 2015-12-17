@@ -28,7 +28,9 @@ MANS   = $(PROJECT).1
 
 include erlang.mk
 
-all:: escript man
+all:: escript
+
+doc: man
 
 test-build:: escript
 
