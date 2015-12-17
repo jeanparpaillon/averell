@@ -10,10 +10,8 @@ addons:
     packages:
       - build-essential
 
-install:
+script:
   - "make"
-
-build:
   - "make tests"
 
 # notifications:
