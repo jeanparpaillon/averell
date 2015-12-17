@@ -78,6 +78,7 @@ load_info(Basedir, Path) ->
 	{ok, [Infos]} -> Infos;
 	{ok, _} -> ?error("Syntax error in ~p", [AccessPath]), [];
 	{error, enoent} -> [];
+	{error, enotdir} -> [];
 	{error, Err} -> ?error("Error reading ~p: ~p", [AccessPath, Err]), []
     end.
 
