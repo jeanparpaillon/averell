@@ -44,14 +44,7 @@ dist: deps
 	vsn=$(shell git describe --dirty --abbrev=7 --tags --always --first-parent 2>/dev/null || true) && \
 	  rm -rf averell-$${vsn} && \
 	  git archive --prefix=averell-$${vsn}/ HEAD . | tar -xf - && \
-	  tar -cf - \
-	    --exclude-vcs \
-	    --exclude='deps/cowboy/examples' --exclude='deps/cowboy/doc' --exclude='deps/cowboy/test' \
-	    --exclude='deps/cowlib/test' \
-	    --exclude='deps/getopt/doc' --exclude='deps/getopt/examples' --exclude='deps/getopt/test' \
-	    --exclude='deps/ranch/examples' --exclude='deps/ranch/guide' --exclude='deps/ranch/manual' --exclude='deps/ranch/test' \
-	    deps | tar -xf - -C averell-$${vsn} && \
-	  tar -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz && \
+	  tar  --exclude='deps' -cf - averell-$${vsn} | xz > averell-$${vsn}.tar.xz && \
 	  rm -rf averell-$${vsn}
 
 clean:: clean-deps clean-local
