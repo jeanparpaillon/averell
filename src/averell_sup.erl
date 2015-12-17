@@ -65,12 +65,12 @@ get_http_child() ->
     Env = lists_clean([
 		       {dispatch, Dispatch},
 		       case application:get_env(averell, cors, false) of
-			   true -> {cors_policy, averell_cors};
+			   true -> {cors_policy, averell_cors_impl};
 			   false -> undefined
 		       end
 		      ]),
     Mw = case application:get_env(averell, cors, false) of
-	     true -> [cowboy_router, cowboy_cors, cowboy_handler];
+	     true -> [cowboy_router, averell_cors, cowboy_handler];
 	     false -> [cowboy_router, cowboy_handler]
 	 end,
     Args = [ http, 10, [{port, Port}], [ {env, Env}, {middlewares, Mw} | ProtoOpts ] ],

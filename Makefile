@@ -16,9 +16,8 @@
 #
 PROJECT = averell
 
-DEPS = cowboy cowboy_cors getopt
-dep_cowboy = git https://github.com/ninenines/cowboy 1.0.1
-dep_cowboy_cors = git http://github.com/jeanparpaillon/cowboy_cors v0.3.1
+DEPS = cowboy getopt
+dep_cowboy = git https://github.com/ninenines/cowboy 1.0.4
 dep_getopt = git https://github.com/jcomellas/getopt.git v0.8.2
 
 ESCRIPT_EMU_ARGS = -smp auto -pa . -noshell -noinput -sasl errlog_type error -escript main averell
