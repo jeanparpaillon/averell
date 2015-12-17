@@ -24,6 +24,7 @@
 -export([init/3,
 	 rest_init/2,
 	 malformed_request/2,
+	 is_authorized/2,
 	 forbidden/2,
 	 content_types_provided/2,
 	 resource_exists/2,
@@ -209,6 +210,11 @@ bad_path_win32_check_test_() ->
 		       -> {boolean(), Req, State}.
 malformed_request(Req, State) ->
     {State =:= error, Req, State}.
+
+
+-spec is_authorized(Req, State) -> {true, Req, State} | {{false, binary()}, Req, State}.
+is_authorized(Req, State) ->
+    {true, Req, State}.
 
 %% Directories, files that can't be accessed at all and
 %% files with no read flag are forbidden.
