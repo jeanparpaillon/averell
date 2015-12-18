@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* 1.2
+  * Upgrade to cowboy 2.0.0-pre1
+  * Add common tests
+
 * 1.1a
   * Remove dependancy on cowboy_cors
 
