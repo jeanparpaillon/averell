@@ -40,4 +40,10 @@ averell [-h] [-p [<port>]] [-c [<cors>]] [-v] [<dir>]
 
 # .avlaccess file format
 
-`.avlaccess` is of `avlaccess()` type, as defined in `averell.hrl`.
+`.avlaccess' is of `avlaccess()' type, as defined in `averell.hrl'.
+
+# Debian packaging
+
+Debian packaging uses `git-buildpackage'.
+
+See doc: http://www.lpenz.org/articles/debgit/
