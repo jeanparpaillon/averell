@@ -47,7 +47,7 @@
 -type state() :: {binary(), {ok, #file_info{}} | {error, atom()}, avlinfos(), extra()}.
 
 
--spec init(Req, opts()) -> {cowboy_rest, Req, error | state()} when Req::cowboy_req:req().
+-spec init(cowboy_req:req(), opts()) -> {cowboy_rest, cowboy_req:req(), error | state()}.
 init(Req, Path) when is_list(Path) ->
     init(Req, list_to_binary(Path));
 init(Req, Path) ->
@@ -195,22 +195,20 @@ bad_path_win32_check_test_() ->
 %% Reject requests that tried to access a file outside
 %% the target directory.
 
--spec malformed_request(Req, State)
-		       -> {boolean(), Req, State}.
+-spec malformed_request(cowboy_req:req(), state())
+		       -> {boolean(), cowboy_req:req(), state()}.
 malformed_request(Req, State) ->
     {State =:= error, Req, State}.
 
 
--spec is_authorized(Req, State) -> {true, Req, State} | {{false, binary()}, Req, State}.
+-spec is_authorized(cowboy_req:req(), state()) -> {true, cowboy_req:req(), state()} | {{false, binary()}, cowboy_req:req(), state()}.
 is_authorized(Req, State) ->
     {true, Req, State}.
 
 %% Directories, files that can't be accessed at all and
 %% files with no read flag are forbidden.
 
--spec forbidden(Req, State)
-	       -> {boolean(), Req, State}
-		      when State::state().
+-spec forbidden(cowboy_req:req(), state()) -> {boolean(), cowboy_req:req(), state()}.
 forbidden(Req, State={_, {ok, #file_info{type=directory}}, _}) ->
     {true, Req, State};
 forbidden(Req, State={_, {error, eacces}, _}) ->
@@ -223,15 +221,14 @@ forbidden(Req, State) ->
 
 %% Detect the mimetype of the file.
 
--spec content_types_provided(Req, State)
-			    -> {[{binary(), get_file}], Req, State}
-				   when State::state().
+-spec content_types_provided(cowboy_req:req(), state())
+			    -> {[{binary(), get_file}], cowboy_req:req(), state()}.
 content_types_provided(Req, State={Path, _, _}) ->
     {[{cow_mimetypes:all(Path), get_file}], Req, State}.
 
 %% Assume the resource doesn't exist if it's not a regular file.
 
--spec resource_exists(Req, State) -> {boolean(), Req, State} when State::state().
+-spec resource_exists(cowboy_req:req(), state()) -> {boolean(), cowboy_req:req(), state()}.
 resource_exists(Req, State={_, {ok, #file_info{type=regular}}, _}) ->
     {true, Req, State};
 resource_exists(Req, State) ->
@@ -239,9 +236,8 @@ resource_exists(Req, State) ->
 
 %% Generate an etag for the file.
 
--spec generate_etag(Req, State)
-		   -> {{strong | weak, binary()}, Req, State}
-			  when State::state().
+-spec generate_etag(cowboy_req:req(), state())
+		   -> {{strong | weak, binary()}, cowboy_req:req(), state()}.
 generate_etag(Req, State={Path, {ok, #file_info{size=Size, mtime=Mtime}}, Extra}) ->
     case proplists:get_value(etag, Extra) of
 	undefined ->
@@ -259,18 +255,14 @@ generate_default_etag(Size, Mtime) ->
 
 %% Return the time of last modification of the file.
 
--spec last_modified(Req, State)
-		   -> {calendar:datetime(), Req, State}
-			  when State::state().
+-spec last_modified(cowboy_req:req(), state()) -> {calendar:datetime(), cowboy_req:req(), state()}.
 last_modified(Req, State={_, {ok, #file_info{mtime=Modified}}, _}) ->
     {Modified, Req, State}.
 
 %% Stream the file.
 %% @todo Export cowboy_req:resp_body_fun()?
 
--spec get_file(Req, State)
-	      -> {{stream, non_neg_integer(), fun()}, Req, State}
-		     when State::state().
+-spec get_file(cowboy_req:req(), state()) -> {{stream, non_neg_integer(), fun()}, cowboy_req:req(), state()}.
 get_file(Req, State={Path, {ok, #file_info{size=Size}}, _}) ->
     Sendfile = fun (Socket, Transport) ->
 		       case Transport:sendfile(Socket, Path) of
