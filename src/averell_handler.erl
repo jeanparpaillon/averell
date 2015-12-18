@@ -227,7 +227,7 @@ forbidden(Req, State) ->
 			    -> {[{binary(), get_file}], Req, State}
 				   when State::state().
 content_types_provided(Req, State={Path, _, _}) ->
-    {[{cow_mimetypes:web(Path), get_file}], Req, State}.
+    {[{cow_mimetypes:all(Path), get_file}], Req, State}.
 
 %% Assume the resource doesn't exist if it's not a regular file.
 
