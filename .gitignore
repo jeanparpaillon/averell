@@ -21,3 +21,4 @@ averell-*.tar.xz
 averell.1
 /averell.d
 /.erlang.mk
+/.averell.plt
