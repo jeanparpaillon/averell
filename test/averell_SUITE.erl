@@ -43,10 +43,12 @@ end_per_suite(_Config) ->
 
 init_per_group(_, Config) ->
     Pid = start(Config, []),
+    timer:sleep(2000),
     [{pid, Pid} | Config].
 
 end_per_group(_, Config) ->    
     exit(?config(pid, Config), exit),
+    timer:sleep(2000),
     ok.
 
 
@@ -97,5 +99,5 @@ start(Config, Opts) ->
     Exe = filename:join([?config(data_dir, Config), "averell"]),
     Dir = filename:join([?config(data_dir, Config), "www"]),
     Cmd = Exe ++ " -p " ++ integer_to_list(?PORT) ++ " " ++ Opts ++ " " ++ Dir,
-    ct:log(info, ?STD_IMPORTANCE, "CMD: ~s", [Cmd]),    
+    ct:log(default, ?STD_IMPORTANCE, "CMD: ~s", [Cmd]),    
     spawn(fun() -> os:cmd(Cmd) end).

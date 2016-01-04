@@ -12,7 +12,7 @@ addons:
 
 script:
   - "make"
-#  - "make tests"
+  - "make tests"
 
 # notifications:
 #   email:
