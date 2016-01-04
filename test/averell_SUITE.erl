@@ -48,7 +48,7 @@ init_per_group(_, Config) ->
 
 end_per_group(_, Config) ->    
     exit(?config(pid, Config), exit),
-    timer:sleep(2000),
+    timer:sleep(100),
     ok.
 
 
@@ -100,4 +100,18 @@ start(Config, Opts) ->
     Dir = filename:join([?config(data_dir, Config), "www"]),
     Cmd = Exe ++ " -p " ++ integer_to_list(?PORT) ++ " " ++ Opts ++ " " ++ Dir,
     ct:log(default, ?STD_IMPORTANCE, "CMD: ~s", [Cmd]),    
-    spawn(fun() -> os:cmd(Cmd) end).
+    spawn(fun() -> 
+		  process_flag(trap_exit, true),
+		  Pid = os:cmd(Cmd ++ "& echo $!"),
+		  loop(Pid)
+	  end).
+
+loop(Pid) ->
+    receive
+	{'EXIT', _From, _Reason} ->
+	    ct:log(default, ?STD_IMPORTANCE, "KILL: ~s", [Pid]),
+	    _  = os:cmd("kill " ++ Pid),
+	    ok;
+	_ ->
+	    loop(Pid)
+    end.
