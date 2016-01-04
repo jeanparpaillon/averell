@@ -50,7 +50,7 @@ man: $(MANS)
 	$(XP) $(DB2MAN) $<
 
 dist:
-	git archive --prefix=averell-$(VSN)/ HEAD . -o averell-$(VSN).tar.xz
+	git archive --prefix=averell-$(VSN)/ HEAD . | xz > averell-$(VSN).tar.xz
 
 clean:: clean-deps clean-local
 
