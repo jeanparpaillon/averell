@@ -15,7 +15,7 @@
 # under the License.
 #
 PROJECT = averell
-VERSION = 1.1a
+VERSION = 1.2.1
 
 define localdep =
 $(shell erl -noshell -eval "case application:ensure_all_started($1) of {ok, _} -> halt(0); _ -> halt(1) end." && echo ok || true)
@@ -33,7 +33,7 @@ DB2MAN = /usr/share/sgml/docbook/stylesheet/xsl/docbook-xsl/manpages/docbook.xsl
 XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
 MANS   = $(PROJECT).1
 
-VSN = $(shell git describe --dirty --abbrev=7 --tags --always --first-parent 2>/dev/null || echo $(VERSION))
+VSN = $(shell $(PWD)/version.sh $(VERSION))
 ARCHIVE = $(PROJECT)-$(VSN).tar.xz
 
 include erlang.mk
