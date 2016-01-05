@@ -49,8 +49,15 @@ man: $(MANS)
 %.1: %.1.xml
 	$(XP) $(DB2MAN) $<
 
-dist:
-	git archive --prefix=averell-$(VSN)/ HEAD . | xz > averell-$(VSN).tar.xz
+dist: $(PROJECT)-$(VSN).tar.xz
+
+debian-dist: $(PROJECT)_$(VSN).orig.tar.xz
+
+$(PROJECT)_$(VSN).orig.tar.xz: $(PROJECT)-$(VSN).tar.xz
+	ln -s $< $@
+
+$(PROJECT)-$(VSN).tar.xz:
+	git archive --prefix=averell-$(VSN)/ HEAD . | xz > $@
 
 clean:: clean-deps clean-local
 
