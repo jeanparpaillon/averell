@@ -10,6 +10,11 @@ addons:
     packages:
       - build-essential
 
+branches:
+  except:
+    - debian-debian
+    - debian-upstream
+
 script:
   - "make"
   - "make tests"
