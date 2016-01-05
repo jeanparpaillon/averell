@@ -7,6 +7,9 @@ include /usr/share/dpkg/default.mk
 	dh $@ 
 
 override_dh_auto_build:
+	# erlang.mk bug ? fails with tag containing '/'
+	mkdir -p ebin
+	cp src/averell.app.src ebin/averell.app
 	dh_auto_build
 	$(MAKE) man
 
