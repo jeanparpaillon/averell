@@ -17,6 +17,8 @@
 PROJECT = averell
 VERSION = 1.2.1
 
+DESTDIR ?=
+
 define localdep =
 $(shell erl -noshell -eval "case application:ensure_all_started($1) of {ok, _} -> halt(0); _ -> halt(1) end." && echo ok || true)
 endef
@@ -35,6 +37,9 @@ MANS   = $(PROJECT).1
 
 VSN = $(shell $(CURDIR)/version.sh $(VERSION))
 ARCHIVE = $(PROJECT)-$(VSN).tar.xz
+
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
 
 subst = sed -e 's|@VSN[@]|$(VSN)|g'
 
@@ -74,6 +79,10 @@ $(PROJECT)-$(VSN).tar.xz:
 	  tar cf - $(PROJECT)-$(VSN) | xz > $@ && \
 	  rm -rf $(PROJECT)-$(VSN)
 
+install: all
+	mkdir -p $(DESTDIR)$(bindir)
+	install -m 755 $(PROJECT) $(DESTDIR)$(bindir)/$(PROJECT)
+
 clean:: clean-deps clean-local
 
 clean-deps:
@@ -89,3 +98,5 @@ clean-local:
 	- rm -f src/$(PROJECT).app.src
 	- rm -f $(MANS)
 	- rm -f $(PROJECT)
+
+.PHONY: install
