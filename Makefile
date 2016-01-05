@@ -95,7 +95,6 @@ clean-deps:
 	done
 
 clean-local:
-	- rm -f src/$(PROJECT).app.src
 	- rm -f $(MANS)
 	- rm -f $(PROJECT)
 
