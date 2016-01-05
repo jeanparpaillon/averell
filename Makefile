@@ -36,6 +36,8 @@ MANS   = $(PROJECT).1
 VSN = $(shell $(CURDIR)/version.sh $(VERSION))
 ARCHIVE = $(PROJECT)-$(VSN).tar.xz
 
+subst = sed -e 's|@VSN[@]|$(VSN)|g'
+
 include erlang.mk
 
 all:: escript
@@ -44,10 +46,17 @@ doc: man
 
 test-build:: escript
 
+escript::
+
 man: $(MANS)
 
 %.1: %.1.xml
 	$(XP) $(DB2MAN) $<
+
+ebin/$(PROJECT).app:: src/$(PROJECT).app.src
+
+src/$(PROJECT).app.src: src/$(PROJECT).app.src.in
+	$(gen_verbose) $(subst) $< > $@
 
 dist: $(PROJECT)-$(VSN).tar.xz
 
@@ -71,5 +80,6 @@ clean-deps:
 	done
 
 clean-local:
+	- rm -f src/$(PROJECT).app.src
 	- rm -f $(MANS)
 	- rm -f $(PROJECT)

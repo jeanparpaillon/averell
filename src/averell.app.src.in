@@ -1,9 +1,8 @@
 %%-*- mode: erlang -*-
 {application, averell,
  [
-  {id, "averell"},
   {description, "Averell, the stupid web server"},
-  {vsn, git},
+  {vsn, "@VSN@"},
   {mod, { averell_app, []}},
   {applications, [
 		  kernel,
@@ -16,7 +15,6 @@
 		  cowboy,
 		  getopt
 		 ]},
-  {description, "Averell is a simple file HTTP server"},
   {modules, [
 	     averell,
 	     averell_app,
