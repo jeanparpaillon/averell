@@ -3,7 +3,7 @@ Section: httpd
 Priority: optional
 Maintainer: Jean Parpaillon <jean.parpaillon@free.fr>
 Build-Depends: debhelper (>= 9), erlang-dev, xsltproc, docbook-xsl
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: http://github.com/jeanparpaillon/averell
 Vcs-Git: https://github.com/jeanparpaillon/averell
 Vcs-Browser: https://github.com/jeanparpaillon/averell
