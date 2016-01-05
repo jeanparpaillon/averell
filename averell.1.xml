@@ -208,7 +208,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--no-index</option></term>
         <listitem>
           <para>Do not serve index.html file automatically (can be
-          overriden by .avlaccess).</para>
+          overridden by .avlaccess).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
