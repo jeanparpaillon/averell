@@ -66,7 +66,13 @@ $(PROJECT)_$(VSN).orig.tar.xz: $(PROJECT)-$(VSN).tar.xz
 	ln -s $< $@
 
 $(PROJECT)-$(VSN).tar.xz:
-	git archive --prefix=averell-$(VSN)/ HEAD . | xz > $@
+	-rm -f src/$(PROJECT).app.src
+	@$(MAKE) --no-print-directory src/$(PROJECT).app.src
+	$(gen_verbose) git archive --prefix=$(PROJECT)-$(VSN)/ HEAD . | \
+	  tar xf - && \
+	  cp src/$(PROJECT).app.src $(PROJECT)-$(VSN)/src && \
+	  tar cf - $(PROJECT)-$(VSN) | xz > $@ && \
+	  rm -rf $(PROJECT)-$(VSN)
 
 clean:: clean-deps clean-local
 
