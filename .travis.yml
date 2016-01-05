@@ -11,9 +11,8 @@ addons:
       - build-essential
 
 branches:
-  except:
-    - debian-debian
-    - debian-upstream
+  only:
+    - master
 
 script:
   - "make"
