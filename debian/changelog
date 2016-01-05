@@ -1,0 +1,11 @@
+averell (1.2.4-1) UNRELEASED; urgency=medium
+
+  * Upgrade to upstream 1.2.4
+
+ -- Jean Parpaillon <jean.parpaillon@free.fr>  Mon, 04 Jan 2016 16:31:08 +0100
+
+averell (1.0a-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Jean Parpaillon <jean.parpaillon@free.fr>  Mon, 22 Dec 2014 17:55:20 +0100

@@ -1,0 +1,3 @@
+version=3
+opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/averell-$1\.tar\.gz/ \
+  https://github.com/jeanparpaillon/averell/tags .*/averell/archive/v(\d\S*)\.tar\.gz
