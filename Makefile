@@ -33,7 +33,7 @@ DB2MAN = /usr/share/sgml/docbook/stylesheet/xsl/docbook-xsl/manpages/docbook.xsl
 XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
 MANS   = $(PROJECT).1
 
-VSN = $(shell $(PWD)/version.sh $(VERSION))
+VSN = $(shell $(CURDIR)/version.sh $(VERSION))
 ARCHIVE = $(PROJECT)-$(VSN).tar.xz
 
 include erlang.mk
