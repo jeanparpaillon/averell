@@ -1,0 +1,28 @@
+# Garbage
+*~
+erl_crash.dump
+
+# Generic erlang build output
+*.beam
+*.app
+/deps
+/*.d
+/.erlang.mk
+
+# Specific build output
+/src/averell.app.src
+/averell
+/averell.1
+
+# Dialyzer output
+/.*.plt
+/.deps_plt
+
+# Test output
+/.eunit
+/log/
+/logs/
+
+# Dist
+averell-*/
+averell-*.tar.xz
