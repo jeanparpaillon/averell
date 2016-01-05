@@ -1,0 +1,26 @@
+language: erlang
+otp_release:
+   - 18.0
+   - 18.1
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - build-essential
+
+branches:
+  only:
+    - master
+
+script:
+  - "make"
+  - "make tests"
+
+# notifications:
+#   email:
+#     recipients:
+#       - 
+#     on_success: change
+#     on_failure: always

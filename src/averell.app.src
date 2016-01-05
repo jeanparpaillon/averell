@@ -1,0 +1,39 @@
+%%-*- mode: erlang -*-
+{application, averell,
+ [
+  {description, "Averell, the stupid web server"},
+  {vsn, "1.2.4"},
+  {mod, { averell_app, []}},
+  {applications, [
+		  kernel,
+		  inets,
+		  stdlib,
+		  mnesia,
+		  ranch,
+		  crypto,
+		  cowlib,
+		  cowboy,
+		  getopt
+		 ]},
+  {modules, [
+	     averell,
+	     averell_app,
+	     averell_cors,
+	     averell_cors_policy,
+	     averell_cors_impl,
+	     averell_handler,
+	     averell_infos,
+	     averell_sup
+	    ]},
+  {env, [
+	 {dir, undefined},
+	 {index, <<"index.html">>},
+	 {port, 80},
+	 {cors, false},
+	 {access, false},
+	 {verbose, false},
+	 {debug, false},
+	 {local, false},
+	 {etag, default}
+	]}
+ ]}.
