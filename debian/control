@@ -10,7 +10,7 @@ Vcs-Browser: https://github.com/jeanparpaillon/averell
 
 Package: averell
 Architecture: all
-Depends: ${misc:Depends}
+Depends: erlang-cowboy (>=2.0.0~pre.1), erlang-getopt (>=0.8.2), ${misc:Depends}
 Description: An incredibly stupid web server
  averell is an incredibly simple, but fast, web server based on the
  erlang/OTP application cowboy.
