@@ -14,12 +14,6 @@ It is based on the erlang cowboy web server.
 make
 ```
 
-or, on Microsoft OS:
-
-```
-build.bat
-```
-
 # Installation
 
 ```
