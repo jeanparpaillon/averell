@@ -12,7 +12,7 @@ Package: averell
 Architecture: all
 Depends: erlang-base-hipe | erlang-base | ${erlang-abi:Depends}, ${erlang:Depends},
 	 erlang-cowboy (>=2.0.0~pre.1), erlang-getopt (>=0.8.2), ${misc:Depends}
-Description: An incredibly stupid web server
+Description: incredibly stupid web server
  averell is an incredibly simple, but fast, web server based on the
  erlang/OTP application cowboy.
  .
