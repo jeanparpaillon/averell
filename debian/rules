@@ -6,11 +6,12 @@ include /usr/share/dpkg/default.mk
 %:
 	dh $@ 
 
-override_dh_auto_build:
-	dh_auto_build
-	$(MAKE) man
-
 override_dh_auto_test:
+	$(MAKE) tests
+
+override_dh_installman:
+	$(MAKE) man
+	dh_installman
 
 override_dh_auto_install:
 
