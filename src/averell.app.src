@@ -2,7 +2,7 @@
 {application, averell,
  [
   {description, "Averell, the stupid web server"},
-  {vsn, "1.2.4"},
+  {vsn, "1.2.5"},
   {mod, { averell_app, []}},
   {applications, [
 		  kernel,

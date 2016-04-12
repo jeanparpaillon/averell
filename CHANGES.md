@@ -5,7 +5,7 @@
   * Add common tests
 
 * 1.1a
-  * Remove dependancy on cowboy_cors
+  * Remove dependency on cowboy_cors
 
 * 1.1
   * Use erlang.mk for building
