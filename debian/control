@@ -2,7 +2,8 @@ Source: averell
 Section: httpd
 Priority: optional
 Maintainer: Jean Parpaillon <jean.parpaillon@free.fr>
-Build-Depends: debhelper (>= 9), erlang-dev (>= 1:17), xsltproc, docbook-xsl
+Build-Depends: debhelper (>= 9), xsltproc, docbook-xsl, git, erlang-dev (>= 1:17),
+	       erlang-cowboy, erlang-getopt, erlang-eunit
 Standards-Version: 3.9.7
 Homepage: http://github.com/jeanparpaillon/averell
 Vcs-Git: https://github.com/jeanparpaillon/averell
