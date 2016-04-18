@@ -12,16 +12,13 @@ License: Apache-2.0
 
 Files: erlang.mk
 Copyright: 2013-2015 Loïc Hoguin <essen@ninenines.eu>
-Copyright: 2015 Viktor Söderqvist <viktor@zuiderkwast.se>
-Copyright: 2014 Dave Cottlehuber <dch@skunkwerks.at>
-Copyright: 2013 Maxim Sokhatsky, Synrc Research Center
-Copyright: 2014, Enrique Fernandez <enrique.fernandez@erlang-solutions.com>
-Copyright: 2014, M Robert Martin <rob@version2beta.com>
-Copyright: 2015, Erlang Solutions Ltd.
-License:
- Permission to use, copy, modify, and/or distribute this software for any
- purpose with or without fee is hereby granted, provided that the above
- copyright notice and this permission notice appear in all copies.
+	   2015 Viktor Söderqvist <viktor@zuiderkwast.se>
+	   2014 Dave Cottlehuber <dch@skunkwerks.at>
+	   2013 Maxim Sokhatsky, Synrc Research Center
+	   2014, Enrique Fernandez <enrique.fernandez@erlang-solutions.com>
+	   2014, M Robert Martin <rob@version2beta.com>
+	   2015, Erlang Solutions Ltd.
+License: erlang.mk
 
 License: Apache-2.0
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,3 +35,8 @@ License: Apache-2.0
  .
  On Debian systems, the complete text of the Apache version 2.0 license
  can be found in "/usr/share/common-licenses/Apache-2.0".
+
+License: erlang.mk
+ Permission to use, copy, modify, and/or distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
