@@ -3,8 +3,10 @@
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/default.mk
 
+export prefix=/usr
+
 %:
-	dh $@ 
+	dh $@
 
 override_dh_auto_test:
 	$(MAKE) tests
@@ -12,8 +14,6 @@ override_dh_auto_test:
 override_dh_installman:
 	$(MAKE) man
 	dh_installman
-
-override_dh_auto_install:
 
 override_dh_gencontrol:
 	erlang-depends
