@@ -9,7 +9,7 @@ export prefix=/usr
 	dh $@
 
 override_dh_auto_test:
-	$(MAKE) tests
+	$(MAKE) eunit
 
 override_dh_installman:
 	$(MAKE) man
